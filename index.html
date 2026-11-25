@@ -1276,10 +1276,12 @@
       // only), so no compensation offset is needed or wanted:
       // adding one is exactly what used to push the BGM ahead of
       // the attack grid after every parry.
+      var pendingCueAudio=[], replayCueAudio=[];
       function sfxAt(name, gTime) {
         var ac = actx; if (!ac) return;
         sfxAtTime = ac.currentTime + Math.max(0, (gTime - gNow) / 1000);
         sfxGridTime = Math.max(gTime, gNow);
+        if(gTime>gNow)pendingCueAudio.push({name:name,time:gTime});
         try { sfx(name); } finally { sfxAtTime = null; sfxGridTime = null; }
       }
 
@@ -2201,6 +2203,7 @@
       }
 
       function resetGame() {
+        pendingCueAudio=[];replayCueAudio=[];
         hideIntroRead();
         resetFinale();
         confidence = 100; score = 0; combo = 0; maxCombo = 0;
@@ -3840,6 +3843,7 @@
         if (MODE === 'playing') {
           MODE = 'paused';
           bgmStop();
+          replayCueAudio=replayCueAudio.concat(pendingCueAudio.filter(function(x){return x.time>gNow;}));pendingCueAudio=[];
           if(effectBus){try{effectBus.disconnect();}catch(e){}effectBus=null;}
           panelPause.hidden = false;
         } else if (MODE === 'paused') {
@@ -4856,7 +4860,7 @@
       }
 
       function drawEnemy(t) {
-        if(MODE==='over' && runCleared) return;
+        if(MODE==='over' && runCleared && gNow-overAt>900) return;
         var staggered = gNow < enemyStaggerUntil;
         var hitFlash = gNow < enemyHitFlashUntil;
         var striking = gNow < enemyStrikeAnimUntil;
@@ -5624,6 +5628,8 @@
             }
             audioWaitSince = null;
             gNow += gdt;
+            pendingCueAudio=pendingCueAudio.filter(function(x){return x.time>gNow;});
+            if(replayCueAudio.length){var replay=replayCueAudio;replayCueAudio=[];replay.forEach(function(x){sfxAt(x.name,x.time);duckBgmAt(x.time,true);});}
             // ONE CLOCK per session: elapsedMs runs from the
             // moment the session starts — playStartClock is never
             // carried forward. The tutorial is its OWN session
