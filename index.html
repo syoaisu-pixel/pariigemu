@@ -808,7 +808,8 @@
           g.gain.setValueAtTime(vol || 0.12, t0);
           g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
           o.connect(g); g.connect(volumeNode(ac,false));
-          releaseAudioOnEnd(o, [g]); o.start(t0); o.stop(t0 + dur + 0.02);
+          releaseAudioOnEnd(o, [g]); o.onended = function(){ o.disconnect(); g.disconnect(); };
+          o.start(t0); o.stop(t0 + dur + 0.02);
         } catch (e) {}
       }
       // Shared noise-buffer cache (perf): noiseBurst / bgmNoiseAt /
@@ -847,7 +848,8 @@
           var f = ac.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = q || 1;
           var g = ac.createGain(); g.gain.value = vol;
           src.connect(f); f.connect(g); g.connect(volumeNode(ac,false));
-          releaseAudioOnEnd(src, [f,g]); src.start(t0);
+          releaseAudioOnEnd(src, [f,g]); src.onended = function(){ src.disconnect(); f.disconnect(); g.disconnect(); };
+          src.start(t0);
         } catch (e) {}
       }
       // Sound palette, split by role so simultaneous sounds never blur.
@@ -1486,7 +1488,8 @@
           g.gain.setValueAtTime(vol, at);
           g.gain.exponentialRampToValueAtTime(0.001, at + dur);
           o.connect(g); g.connect(out);
-          releaseAudioOnEnd(o, [g]); o.start(at); o.stop(at + dur + 0.02);
+          releaseAudioOnEnd(o, [g]); o.onended = function(){ o.disconnect(); g.disconnect(); };
+          o.start(at); o.stop(at + dur + 0.02);
         } catch (e) {}
       }
       function bgmHatAt(at, vol) {
@@ -1497,7 +1500,8 @@
           var f = ac.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 7000;
           var g = ac.createGain(); g.gain.value = vol;
           src.connect(f); f.connect(g); g.connect(out);
-          releaseAudioOnEnd(src, [f,g]); src.start(at);
+          releaseAudioOnEnd(src, [f,g]); src.onended = function(){ src.disconnect(); f.disconnect(); g.disconnect(); };
+          src.start(at);
         } catch (e) {}
       }
       // generic filtered noise through the shared BGM bus (hats,
@@ -1511,7 +1515,8 @@
           if (q) f.Q.value = q;
           var g = ac.createGain(); g.gain.value = vol;
           src.connect(f); f.connect(g); g.connect(out);
-          releaseAudioOnEnd(src, [f,g]); src.start(at);
+          releaseAudioOnEnd(src, [f,g]); src.onended = function(){ src.disconnect(); f.disconnect(); g.disconnect(); };
+          src.start(at);
         } catch (e) {}
       }
       var BGM_BASS = [55, 55, 43.65, 43.65, 65.41, 65.41, 49, 49]; // per beat: Am Am F F C C G G
