@@ -640,7 +640,7 @@
         <div class="panel" id="panelStart">
           <div class="panel-scroll">
             <h2 class="dot">パリィゲーム</h2>
-            <p class="sub">敵の攻撃をパリィか回避か、一瞬で見極めるゲーム。<b>ノーマル10:00／ハード15:00</b>生き残ればクリア。自信ゲージが0で終了。</p>
+            <p class="sub">魔王が世界の鼓動を奪おうとしている。勇者よ、音を頼りに猛攻を捌き、夜明けを取り戻せ。</p><p class="sub"><b>3分／ノーマル10分／ハード15分</b> 生き残れば勝利。自信ゲージが0で終了。</p>
             <div class="rules">
               <div class="row"><span class="chip parry">◆ 白〜青白</span><span><b>パリィ</b>で受ける。</span></div>
               <div class="row"><span class="chip red">☠ 赤</span><span><b>パリィ不可</b>。<b>回避</b>でよける。</span></div>
@@ -794,6 +794,7 @@
       }
       var audioResumePending = false, audioWaitSince = null;
       function audio() {
+        if (actx && actx.state==='closed'){actx=null;effectBus=null;musicBus=null;bgmBus=null;}
         if (!actx) {
           try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { actx = null; }
         }
@@ -2457,7 +2458,7 @@
         pressQueue = []; seqAssign = []; seqResolvedCount = 0;
         twinActive = false; twinCues = []; twinWarnTimes = [];
         updateHUD();
-        finaleBanner('魔王の猛攻を退けた！');
+        finaleBanner('魔王の猛攻を退けた。夜明けが訪れる！');
         doFlash('#ffe6a1');
         finaleTimer=setTimeout(function(){if(MODE==='over'&&runCleared){sfx('clear');finaleBanner('VICTORY');}},750);
         finaleResultTimer=setTimeout(function(){if(MODE==='over'&&runCleared){finaleBanner('');fillResults(true);panelOver.hidden=false;}},2800);
@@ -3839,6 +3840,7 @@
         if (MODE === 'playing') {
           MODE = 'paused';
           bgmStop();
+          if(effectBus){try{effectBus.disconnect();}catch(e){}effectBus=null;}
           panelPause.hidden = false;
         } else if (MODE === 'paused') {
           if (resumeTimer !== null) { cancelResume(); return; }
@@ -5614,10 +5616,10 @@
           // idle motion (visPhase) and the particle fx pause.
           if (hitstop > 0) hitstop -= dt;
           if (MODE === 'playing') {
-            if (soundOn && actx && actx.state !== 'running') {
+            if (soundOn && (!actx || actx.state !== 'running')) {
               audio();
               if (audioWaitSince === null) audioWaitSince = ts;
-              if (ts - audioWaitSince >= 500) { togglePause(); audioWaitSince = null; }
+              if (ts - audioWaitSince >= 500) { togglePause(); audioWaitSince = null; document.getElementById('btnResume').textContent='音声を再接続して再開'; }
               render(dt); return; // do not consume attack cues while audio is unavailable
             }
             audioWaitSince = null;
@@ -5643,7 +5645,7 @@
             // during the tutorial itself
             if (!introActive && !tutSession) {
               var remain=clearMs()-elapsedMs;
-              if(remain<=60000 && finaleNotice===0){finaleNotice=1;finaleBanner('最終局面');}
+              if(remain<=60000 && finaleNotice===0){finaleNotice=1;finaleBanner('最終局面 — 世界の鼓動を守れ');}
               if(remain<=10000 && finaleNotice<2){finaleNotice=2;finaleBanner('決着まであとわずか');}
               if(finaleNotice===1 && remain<57000 || finaleNotice===2 && remain<7000) finaleBanner('');
               if(remain<=0 && finalSpecial && !atk && !cue && !forceChainNext && !forceDarkNext && seqRemaining()<=0){elapsedMs=clearMs();gameClear();render(dt);return;}
