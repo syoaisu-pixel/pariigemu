@@ -561,6 +561,26 @@
       .swatch { display: inline-block; width: 11px; height: 11px; margin: 0 3px; vertical-align: -1px; }
       .sw-cyan { background: #57c8e8; }
       .sw-red { background: #e05a4c; }
+      /* Dedicated results screen, independent of the 16:9 arena. */
+      #panelOver { position:fixed; inset:0; z-index:60; overflow:hidden; justify-content:flex-start; padding:0; background:radial-gradient(ellipse at 50% 0%,#263451 0%,#111624 48%,#080a11 100%); }
+      #panelOver[data-clear="true"] { background:radial-gradient(ellipse at 50% 0%,#39472d 0%,#15251e 48%,#080a11 100%); }
+      .result-scroll { width:100%; flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:24px 16px 16px; }
+      .result-inner { max-width:680px; margin:auto; }
+      .result-kicker { color:#9db6d5; letter-spacing:.32em; font-size:12px; }
+      #panelOver h2 { font-size:clamp(22px,5vw,34px); margin:12px 0; }
+      .result-hero { border:1px solid #a78a4e; background:linear-gradient(135deg,#282334,#171b2a); padding:18px 12px; margin:14px 0; box-shadow:0 0 28px #d8a94b22; }
+      .result-rank { font-size:clamp(64px,15vw,104px); line-height:1; color:#ffe18a; text-shadow:0 0 24px #e9b74888,3px 3px #795522; }
+      .result-score-label { color:#b6bfd3; letter-spacing:.22em; font-size:12px; margin-top:12px; }
+      #panelOver .final-score { font-size:clamp(40px,10vw,70px); margin:0; color:#ffe18a; }
+      #panelOver .results,#panelOver .breakdown { width:100%; max-width:none; display:grid; grid-template-columns:minmax(0,1fr) auto; text-align:left; gap:8px 16px; background:#101521; border:1px solid #343e54; padding:14px; font-size:14px; margin:12px 0; }
+      #panelOver .rv { text-align:right; font-size:16px; color:#e9f4ff; }
+      #panelOver .foot-hint { line-height:1.7; color:#aebbd0; font-size:13px; }
+      .result-actions { flex:none; width:100%; display:flex; justify-content:center; gap:10px; flex-wrap:wrap; padding:12px 12px calc(12px + env(safe-area-inset-bottom)); background:#0b101c; border-top:1px solid #414c63; }
+      #panelOver .result-actions button { margin:0; font-size:16px; min-height:46px; padding:8px 18px; }
+      #panelOver:not([hidden]) .result-hero { animation:resultReveal .55s ease-out both; }
+      #panelOver:not([hidden]) #resRecord:not(:empty) { animation:resultReveal .65s .15s ease-out both; }
+      @keyframes resultReveal { from { opacity:0; transform:translateY(12px) scale(.96); } to { opacity:1; transform:none; } }
+      @media(prefers-reduced-motion:reduce){#panelOver *{animation:none!important;}}
     </style>
   </head>
   <body>
@@ -621,9 +641,10 @@
         </div>
 
         <div class="panel" id="panelOver" hidden>
+          <div class="result-scroll"><div class="result-inner"><div class="result-kicker dot">BATTLE RESULT</div>
           <h2 class="dot" id="overTitle">ゲームオーバー</h2>
           <p class="dot" id="overSub" style="color:#7dffb0;font-size:16px;margin:0 0 6px;min-height:20px;"></p>
-          <div class="final-score dot" id="finalScore">0</div>
+          <div class="result-hero"><div class="result-kicker">防御成功率ランク</div><div class="result-rank dot" id="resultRank">—</div><div class="result-score-label">FINAL SCORE</div><div class="final-score dot" id="finalScore">0</div></div>
           <div class="results dot">
             <span class="rk">モード</span><span class="rv" id="resMode">ノーマル</span>
             <span class="rk">パリィ成功</span><span class="rv" id="resParry">0</span>
@@ -647,8 +668,8 @@
             <span class="rk">暗転時</span><span class="rv" id="bdDark">—</span>
           </div>
           <p id="masteryReport" class="foot-hint"></p><p id="timingReport" class="foot-hint"></p>
-          <button class="big-btn" id="btnRetry" type="button">▶ もう一度</button>
-          <button class="ghost-btn" id="btnOverTitle" type="button">タイトルに戻る</button>
+          </div></div><div class="result-actions"><button class="big-btn" id="btnRetry" type="button">▶ もう一度</button>
+          <button class="ghost-btn" id="btnOverTitle" type="button">タイトルに戻る</button></div>
         </div>
 
         <div class="panel" id="panelTutDone" hidden>
@@ -2314,6 +2335,10 @@
         document.getElementById('resBestTime').textContent = fmtTime(runBest.time);
         document.getElementById('resRecord').textContent = newRecord ? '★ NEW RECORD!' : '';
         document.getElementById('timingReport').textContent = timingN ? '成功入力 '+timingN+'件｜平均偏差 '+(timingSum/timingN).toFixed(1)+'ms｜平均絶対誤差 '+(timingAbs/timingN).toFixed(1)+'ms｜標準偏差 '+Math.sqrt(Math.max(0,timingSq/timingN-Math.pow(timingSum/timingN,2))).toFixed(1)+'ms' : '成功入力の計測データなし';
+        panelOver.dataset.clear = String(cleared);
+        var accuracy = totalFaced ? (parryCount + dodgeCount) / totalFaced : 0;
+        document.getElementById('resultRank').textContent = !totalFaced ? '—' : accuracy >= .95 ? 'S' : accuracy >= .85 ? 'A' : accuracy >= .70 ? 'B' : 'C';
+        panelOver.querySelector('.result-scroll').scrollTop = 0;
         fillBreakdown();
         var categories={single:'単発',seq:'連撃',rhythm:'リズム',both:'同時押し',dark:'暗転'};
         document.getElementById('masteryReport').textContent=Object.keys(categories).filter(function(k){return catStats[k].n>0;}).map(function(k){var c=catStats[k],r=c.ok/c.n;return categories[k]+': '+(c.n<10?'計測中':r>=.95?'S':r>=.85?'A':r>=.70?'B':'C');}).join(' / ');
