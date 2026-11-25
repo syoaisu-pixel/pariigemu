@@ -618,7 +618,19 @@
 #panelTutDone:not([hidden]){background:radial-gradient(ellipse at 50% 35%,#533068,#1b142d 55%,#090c16 90%)}
 #panelTutDone h2{text-shadow:0 3px #3a183f,0 0 25px #f2a4ff}
 @media(prefers-reduced-motion:reduce){#tutorialRead,#finaleBanner:not([hidden]){animation:none}}
-#panelTutDone:not([hidden]) .training-seal{font-size:clamp(20px,5vh,44px);font-weight:900;color:#ffdf9a;border:2px solid #e5b96a;padding:4px 24px;box-shadow:0 0 24px #f5bd6655;letter-spacing:.15em;animation:demonEnter .5s ease-out both}#panelTutDone:not([hidden]) h2{animation:demonEnter .4s ease-out both}@media(prefers-reduced-motion:reduce){#panelTutDone:not([hidden]) .training-seal,#panelTutDone:not([hidden]) h2{animation:none}}</style>
+#panelTutDone:not([hidden]) .training-seal{font-size:clamp(20px,5vh,44px);font-weight:900;color:#ffdf9a;border:2px solid #e5b96a;padding:4px 24px;box-shadow:0 0 24px #f5bd6655;letter-spacing:.15em;animation:demonEnter .5s ease-out both}#panelTutDone:not([hidden]) h2{animation:demonEnter .4s ease-out both}@media(prefers-reduced-motion:reduce){#panelTutDone:not([hidden]) .training-seal,#panelTutDone:not([hidden]) h2{animation:none}}
+#panelOver[data-rank="S"] .result-hero{position:relative;isolation:isolate;overflow:hidden;border:2px solid #ffe09a;background:radial-gradient(ellipse at 50% 40%,#775221,#272035 65%,#151521);box-shadow:0 0 32px #ffc54b66,inset 0 0 25px #ffcf6544}
+#panelOver[data-rank="S"] .result-hero:before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(circle at 12% 20%,#fff3b0 0 2px,transparent 3px),radial-gradient(circle at 80% 35%,#ffe7a1 0 3px,transparent 4px),radial-gradient(circle at 32% 85%,#fff 0 1px,transparent 3px);background-size:100px 110px,145px 120px,80px 95px;animation:goldDrift 5s linear infinite;opacity:.7;pointer-events:none}
+@keyframes goldDrift{to{background-position:100px -110px,-145px -120px,80px -95px}}
+#panelOver[data-rank="S"]:not([hidden]) #resultRank{animation:rankBurst .65s cubic-bezier(.16,1,.3,1) both}
+@keyframes rankBurst{0%{opacity:0;transform:scale(2)}65%{opacity:1;transform:scale(.9)}100%{transform:scale(1)}}
+#resRecord:not(:empty){text-shadow:0 0 14px #ffbf36;letter-spacing:.08em}
+#panelOver .breakdown[hidden]{display:none!important}
+#resultGraph>div{grid-template-columns:minmax(0,1fr) minmax(70px,1fr);text-align:left;align-items:center;font-size:clamp(12px,3vw,16px)}
+#finaleBanner:not([hidden]){transform:translateX(-50%);animation:none;max-width:90vw;white-space:normal}
+@media(orientation:landscape){#finaleBanner:not([hidden]){top:3%;font-size:clamp(12px,3vh,19px);padding:4px 14px;max-width:60vw;box-shadow:none}}
+@media(prefers-reduced-motion:reduce){#panelOver[data-rank="S"] .result-hero:before,#panelOver[data-rank="S"]:not([hidden]) #resultRank{animation:none}}
+</style>
   </head>
   <body>
     <div class="wrap">
@@ -699,8 +711,8 @@
             <span class="rk">ベスト時間</span><span class="rv" id="resBestTime">0:00</span>
           </div>
           <p class="dot" id="resRecord" style="color:#ffe066;font-size:19px;margin:0 0 10px;min-height:23px;"></p>
-          <p class="breakdown-head dot">種別ごとの成功率（成功／試行）</p>
-          <div class="breakdown dot">
+          <p class="breakdown-head dot">攻撃別の成績</p>
+          <div class="breakdown dot" hidden>
             <span class="rk">単発</span><span class="rv" id="bdSingle">—</span>
             <span class="rk">連撃</span><span class="rv" id="bdSeq">—</span>
             <span class="rk">強攻撃</span><span class="rv" id="bdRhythm">—</span>
@@ -1621,7 +1633,7 @@
         var stepsThisFrame = 0;
         while (stepsThisFrame < 48) {
           var t = timeAtPhase(bgmStepIdx * 0.5);
-          if (!isFinite(t) || t > gNow + 140) break;
+          if (!isFinite(t) || t > gNow + 220) break;
           // the game clock never freezes (hitstop is visual only),
           // so the grid point maps straight onto the audio clock —
           // no hitstop offset. (Scheduling used to add the pending
@@ -2441,7 +2453,7 @@
         var accuracy = totalFaced ? (parryCount + dodgeCount) / totalFaced : 0;
         var rankNode=document.getElementById('resultRank');
         rankNode.textContent=!totalFaced?'—':accuracy>=.95?'S':accuracy>=.85?'A':accuracy>=.70?'B':'C';
-        rankNode.dataset.rank=rankNode.textContent;
+        rankNode.dataset.rank=rankNode.textContent;panelOver.dataset.rank=rankNode.textContent;
         var history=readHistory();
         history.unshift({date:new Date().toISOString(),mode:runChoice,score:score,time:elapsedMs,accuracy:accuracy,combo:maxCombo,clear:cleared});
         var flags=readAchievements();flags.win=flags.win||cleared;flags.master=flags.master||(cleared&&accuracy>=.95);flags.combo=flags.combo||maxCombo>=50;try{localStorage.setItem('pariigemu.achievements.v1',JSON.stringify(flags));}catch(e){}
@@ -2449,11 +2461,11 @@
         try{localStorage.setItem('pariigemu.history.v1',JSON.stringify(history));}catch(e){}
         var graph=document.getElementById('resultGraph');graph.replaceChildren();
         var names={single:'単発',seq:'連撃',rhythm:'必殺',both:'同時押し',dark:'暗転'};
-        Object.keys(names).forEach(function(k){var c=catStats[k],row=document.createElement('div'),label=document.createElement('span'),bar=document.createElement('progress');label.textContent=names[k]+' '+(c.n?Math.round(c.ok/c.n*100)+'%':'未計測');bar.max=100;bar.value=c.n?c.ok/c.n*100:0;row.append(label,bar);graph.append(row);});
+        Object.keys(names).forEach(function(k){var c=catStats[k],row=document.createElement('div'),label=document.createElement('span'),bar=document.createElement('progress');label.textContent=names[k]+' '+(c.n?Math.round(c.ok/c.n*100)+'% ('+c.ok+'/'+c.n+')':'未計測');bar.max=100;bar.value=c.n?c.ok/c.n*100:0;row.append(label,bar);graph.append(row);});
         renderHistory();
         panelOver.querySelector('.result-scroll').scrollTop = 0;
         fillBreakdown();
-        var categories={single:'単発',seq:'連撃',rhythm:'リズム',both:'同時押し',dark:'暗転'};
+        var categories={single:'単発',seq:'連撃',rhythm:'必殺',both:'同時押し',dark:'暗転'};
         document.getElementById('masteryReport').textContent=Object.keys(categories).filter(function(k){return catStats[k].n>0;}).map(function(k){var c=catStats[k],r=c.ok/c.n;return categories[k]+': '+(c.n<10?'計測中':r>=.95?'S':r>=.85?'A':r>=.70?'B':'C');}).join(' / ');
       }
       function gameOver() {
@@ -5693,7 +5705,7 @@
               var rcGuard = 0;
               while (twinCues.length && rcGuard++ < 8) {
                 var rc0 = twinCues[0];
-                if (actx && rc0.at - gNow <= 130) { sfxAt(rc0.sfx, rc0.at); duckBgmAt(rc0.at, true); twinCues.shift(); }
+                if (actx && rc0.at - gNow <= 200) { sfxAt(rc0.sfx, rc0.at); duckBgmAt(rc0.at, true); twinCues.shift(); }
                 else if (gNow >= rc0.at) { sfx(rc0.sfx); duckBgmAt(gNow, true); twinCues.shift(); }
                 else break;
               }
@@ -5701,14 +5713,14 @@
             if (atk && atk.ultimateCueTimes) {
               while (atk.ultimateCueIndex < 3) {
                 var ui = atk.ultimateCueIndex, ut = atk.ultimateCueTimes[ui];
-                if (ut > gNow + 130 || !actx) break;
+                if (ut > gNow + 200 || !actx) break;
                 sfxAt('ultimatePop', ut);
                 duckBgmAt(ut, true); atk.ultimateCueIndex++;
               }
               atk.warnPlayed = true;
             }
             if (atk && !atk.warnPlayed && atk.warnAt != null) {
-              if (!atk.warnSched && actx && atk.warnAt - gNow <= 130) {
+              if (!atk.warnSched && actx && atk.warnAt - gNow <= 200) {
                 atk.warnSched = true; atk.warnPlayed = true;
                 if (atk.warnSfx) { sfxAt(warnSfxFor(atk.warnSfx, atk.dark), atk.warnAt); duckBgmAt(atk.warnAt, true); }
               } else if (gNow >= atk.warnAt) {
@@ -5744,7 +5756,7 @@
                 // beat, inside its judgment sound's decay), and at
                 // the shallow duck they kept fusing with the kick
                 // and the strike cluster on some rounds
-                if (actx && ttick - gNow <= 130) { sfxAt(tickSfx, ttick); duckBgmAt(ttick, isPopo || atk.tickIdx === 0); atk.tickIdx++; }
+                if (actx && ttick - gNow <= 200) { sfxAt(tickSfx, ttick); duckBgmAt(ttick, isPopo || atk.tickIdx === 0); atk.tickIdx++; }
                 else if (ttick <= Math.min(gNow, atk.strikeAt)) { sfx(tickSfx); duckBgmAt(gNow, isPopo || atk.tickIdx === 0); atk.tickIdx++; }
                 else break;
               }
@@ -5796,7 +5808,7 @@
               while (countInDone < 2) {
                 var cph = restUntilPhase - 2 + countInDone;
                 var ctm = timeAtPhase(cph);
-                if (actx && ctm - gNow <= 130) { sfxAt('countIn', ctm); countInDone++; }
+                if (actx && ctm - gNow <= 200) { sfxAt('countIn', ctm); countInDone++; }
                 else if (rph >= cph) { sfx('countIn'); countInDone++; }
                 else break;
               }
@@ -5835,7 +5847,7 @@
               // visuals (and plays any beep that could not be
               // scheduled, e.g. no audio context yet)
               var cueGuard = 0;
-              while (cue.beepSchedIdx < cue.pattern.length && actx && cue.beepTimes[cue.beepSchedIdx] - gNow <= 130 && cueGuard++ < 12) {
+              while (cue.beepSchedIdx < cue.pattern.length && actx && cue.beepTimes[cue.beepSchedIdx] - gNow <= 200 && cueGuard++ < 12) {
                 sfxAt(cueSfxFor(cue.pattern[cue.beepSchedIdx]), cue.beepTimes[cue.beepSchedIdx]);
                 duckBgmAt(cue.beepTimes[cue.beepSchedIdx]);
                 cue.beepSchedIdx++;
