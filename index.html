@@ -950,12 +950,14 @@
             tone(70, 0.24, 'triangle', 0.10, 40);
             break;
           case 'penalty': tone(300, 0.16, 'triangle', 0.10, 175); break;
-          case 'darkRhythm': tone(659, 0.07, 'sine', 0.10); tone(659, 0.07, 'sine', 0.10, 0, cueHalfBeat(1)); tone(659, 0.07, 'sine', 0.10, 0, cueHalfBeat(2)); break; // rhythm single: two-note count-in (visible screen only)
+          case 'darkRhythm':
+            for(var ci=0;ci<3;ci++){var cd=ci?cueHalfBeat(ci):0; tone(880,0.065,'triangle',0.28,0,cd); tone(1760,0.045,'sine',0.12,0,cd);}
+            break; // rhythm single: two-note count-in (visible screen only)
           case 'darkRhythmMore':
             // chain count-in (round 1 of a repeating ultimate):
             // the usual two notes plus a RISING third — the
             // barrage will continue past the first strike
-            tone(659, 0.07, 'sine', 0.10); tone(659, 0.07, 'sine', 0.10, 0, cueHalfBeat(1)); tone(880, 0.10, 'sine', 0.11, 0, cueHalfBeat(2));
+            for(var ci=0;ci<3;ci++){var cd=ci?cueHalfBeat(ci):0; var cf=ci===2?1175:880; tone(cf,0.065,'triangle',0.28,0,cd); tone(cf*2,0.045,'sine',0.12,0,cd);}
             break;
           case 'tick':
             // rhythm-attack beat tick: plain but CLEARLY audible —
