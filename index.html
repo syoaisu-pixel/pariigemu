@@ -970,7 +970,7 @@
             break; // legacy three-note count-in fallback
           case 'darkRhythmMore':
             // chain count-in (round 1 of a repeating ultimate):
-            // the usual two notes plus a RISING third — the
+            // three identical notes — the
             // barrage will continue past the first strike
             for(var ci=0;ci<3;ci++){var cd=ci?cueHalfBeat(ci):0; var cf=880; tone(cf,0.065,'triangle',0.28,0,cd); tone(cf*2,0.045,'sine',0.12,0,cd);}
             break;
@@ -5607,7 +5607,7 @@
               while (atk.ultimateCueIndex < 3) {
                 var ui = atk.ultimateCueIndex, ut = atk.ultimateCueTimes[ui];
                 if (ut > gNow + 130 || !actx) break;
-                sfxAt(ui === 2 && atk.warnSfx === 'darkRhythmMore' ? 'ultimatePopHigh' : 'ultimatePop', ut);
+                sfxAt('ultimatePop', ut);
                 duckBgmAt(ut, true); atk.ultimateCueIndex++;
               }
               atk.warnPlayed = true;
