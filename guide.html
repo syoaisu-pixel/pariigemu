@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:,">
+<title>パリィゲーム攻略まとめ | 判定・解禁表・パターン図鑑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f5f3; --surface:#ffffff; --surface2:#eef0ea; --ink:#1a1e1c; --muted:#5b6560; --line:#d8ddd6;
+  --accent:#b91c1c; --accent-bg:#fef2f2; --blue:#0369a1; --blue-bg:#f0f9ff; --gold:#92400e; --gold-bg:#fffbeb;
+  --green:#166534; --green-bg:#f0fdf4; --header:#111613; --header-ink:#f5f2e8;
+  --chip:#111613; --chip-ink:#fff;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0f1210; --surface:#171c19; --surface2:#1e2521; --ink:#e8ebe8; --muted:#9aa8a0; --line:#2a332e;
+    --accent:#f87171; --accent-bg:#2a1515; --blue:#38bdf8; --blue-bg:#0c2233; --gold:#fbbf24; --gold-bg:#2a210b;
+    --green:#4ade80; --green-bg:#0f2417; --header:#0a0d0b; --header-ink:#f5f2e8; --chip:#e8ebe8; --chip-ink:#111;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:84px;overflow-x:clip}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans JP",system-ui,sans-serif;line-height:1.75;font-size:15.5px;overflow-x:clip;max-width:100vw}
+img,svg{max-width:100%}
+.sky div{min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.sky small{overflow-wrap:anywhere}
+a{color:var(--blue)}
+.mono{font-family:"IBM Plex Mono",monospace;letter-spacing:.06em}
+
+/* header */
+.topbar{background:var(--header);color:var(--header-ink);padding:22px 20px 18px;border-bottom:4px solid #b91c1c}
+.topbar-inner{max-width:1120px;margin:0 auto}
+.game-label{font-size:12px;letter-spacing:.18em;font-weight:700;opacity:.7;text-transform:uppercase}
+.topbar h1{margin:4px 0 6px;font-size:clamp(26px,5vw,40px);line-height:1.15;font-weight:900;letter-spacing:.02em}
+.topbar h1 span{color:#fbbf24}
+.topbar p{margin:0;opacity:.85;max-width:680px;font-size:14.5px}
+.quick-stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.qs{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);padding:8px 12px;border-radius:6px;font-size:13px}
+.qs b{color:#fff;font-size:15px}
+.qs small{display:block;opacity:.7;font-size:11px;letter-spacing:.08em}
+
+/* layout */
+.wrap{max-width:1120px;margin:0 auto;padding:0 16px 64px;display:grid;grid-template-columns:240px 1fr;gap:28px}
+@media(max-width:820px){.wrap{grid-template-columns:1fr}}
+
+/* TOC */
+.toc{position:sticky;top:16px;align-self:start;margin-top:20px;background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.toc h2{margin:0;padding:12px 16px;font-size:13px;letter-spacing:.12em;background:var(--surface2);border-bottom:1px solid var(--line)}
+.toc nav{display:flex;flex-direction:column}
+.toc a{padding:11px 16px;min-height:44px;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink);font-size:14px;border-bottom:1px solid var(--line)}
+.toc a:last-child{border-bottom:none}
+.toc a:hover{background:var(--surface2)}
+.toc a .num{font-family:"IBM Plex Mono",monospace;font-size:11px;background:var(--ink);color:var(--bg);width:22px;height:22px;border-radius:50%;display:grid;place-items:center;flex-shrink:0}
+@media(max-width:820px){.toc{position:static}.toc nav{flex-direction:row;flex-wrap:wrap}.toc a{border:1px solid var(--line);border-radius:999px;margin:6px 0 6px 8px;padding:6px 12px;min-height:36px}.toc a .num{display:none}}
+
+main{min-width:0}
+section{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px 22px 20px;margin-top:20px}
+section h2{margin:0 0 4px;font-size:21px;font-weight:900;display:flex;align-items:center;gap:10px;line-height:1.3}
+section h2::before{content:"";width:6px;height:26px;background:var(--accent);border-radius:3px;flex-shrink:0}
+section h3{margin:22px 0 8px;font-size:16px;font-weight:800;border-bottom:2px solid var(--line);padding-bottom:6px}
+section p{margin:8px 0}
+.lead{font-size:16px}
+.callout{border-radius:8px;padding:14px 16px;margin:14px 0;font-size:14.5px}
+.callout.red{background:var(--accent-bg);border:1px solid #fecaca}
+.callout.blue{background:var(--blue-bg);border:1px solid #bae6fd}
+.callout.gold{background:var(--gold-bg);border:1px solid #fde68a}
+@media(prefers-color-scheme:dark){.callout.red,.callout.blue,.callout.gold{border-color:var(--line)}}
+.callout b{display:block;margin-bottom:2px}
+
+/* tables - wiki style */
+.table-wrap{overflow-x:auto;margin:12px 0;border:1px solid var(--line);border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:420px}
+th{background:var(--header);color:#fff;text-align:left;padding:10px 12px;font-size:12.5px;letter-spacing:.06em;white-space:nowrap}
+td{padding:10px 12px;border-top:1px solid var(--line);vertical-align:top}
+tr:nth-child(even) td{background:var(--surface2)}
+td.num, th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.plus{color:var(--green);font-weight:800}
+.minus{color:var(--accent);font-weight:800}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.badge-red{background:#dc2626;color:#fff}.badge-blue{background:#0284c7;color:#fff}.badge-gold{background:#d97706;color:#fff}.badge-gray{background:#6b7280;color:#fff}.badge-green{background:#16a34a;color:#fff}
+.small{font-size:13px;color:var(--muted)}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+@media(max-width:560px){.kv{grid-template-columns:1fr}}
+.kv div{background:var(--surface2);border-radius:8px;padding:12px 14px}
+.kv dt{font-size:12px;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.kv dd{margin:2px 0 0;font-weight:700;font-size:15px}
+
+/* tempo visual */
+.tempo-bars{display:flex;align-items:flex-end;gap:3px;height:110px;margin:16px 0 4px;padding:0 2px}
+.tbar{flex:1;background:var(--blue);border-radius:3px 3px 0 0;position:relative;min-width:8px}
+.tbar.fast{background:var(--accent)}
+.tbar span{position:absolute;bottom:-22px;left:50%;transform:translateX(-50%) rotate(-38deg);transform-origin:top;font-size:10px;white-space:nowrap;color:var(--muted);font-family:"IBM Plex Mono",monospace}
+.tempo-wrap{padding-bottom:28px}
+
+/* pattern chips */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.filters button{min-height:40px;padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:700;cursor:pointer;font-size:14px}
+.filters button.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pattern-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:8px}
+.pat{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.pat .p{font-family:"IBM Plex Mono",monospace;font-weight:700;font-size:15px;letter-spacing:.12em}
+.pat .meta{font-size:11.5px;color:var(--muted);margin-top:2px}
+.pat .dots{display:flex;gap:3px;margin-top:8px}
+.dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--muted);flex-shrink:0}
+.dot.on{background:#dc2626;border-color:#dc2626}
+.dot.rest{background:transparent}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin:8px 0}
+.legend i{width:12px;height:12px;border-radius:50%;display:inline-block;vertical-align:-1px;margin-right:4px}
+
+/* timeline */
+.tl{border-left:3px solid var(--line);margin:8px 0 0 8px;padding-left:0;list-style:none}
+.tl li{position:relative;padding:10px 0 10px 22px;border-bottom:1px dashed var(--line)}
+.tl li:last-child{border-bottom:none}
+.tl li::before{content:"";position:absolute;left:-8px;top:18px;width:13px;height:13px;border-radius:50%;background:var(--surface);border:3px solid var(--accent)}
+.tl .time{font-family:"IBM Plex Mono",monospace;font-weight:700;background:var(--ink);color:var(--bg);padding:2px 8px;border-radius:4px;font-size:13px;margin-right:8px;white-space:nowrap}
+.tl .pat-inline{font-family:"IBM Plex Mono",monospace;font-weight:700;letter-spacing:.08em;background:var(--surface2);padding:1px 6px;border-radius:4px;white-space:nowrap}
+
+/* monster grid */
+.mon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:12px 0}
+.mon{border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--surface2)}
+.mon .emoji{font-size:26px;line-height:1}
+.mon b{display:block;margin-top:6px;font-size:14.5px}
+.mon p{margin:2px 0 0;font-size:12.5px;color:var(--muted);line-height:1.5}
+
+/* sky cycle */
+.sky{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:14px 0}
+@media(max-width:640px){.sky{grid-template-columns:repeat(4,1fr)}}
+.sky div{border-radius:8px;padding:12px 8px;text-align:center;color:#fff;font-size:13px;font-weight:700;line-height:1.4}
+.sky small{display:block;font-weight:400;opacity:.85;font-size:11px}
+.s-night{background:#1e293b}.s-deep{background:#020617}.s-dawn{background:#c2703d}.s-morning{background:#5aa0c9}.s-noon{background:#2f7fc1}.s-dusk{background:#b45309}.s-night2{background:#1e293b}
+
+@media(max-width:640px){
+  table{min-width:0;font-size:13px}
+  th{white-space:normal;padding:8px 8px}
+  td{padding:8px 8px}
+  section{padding:18px 14px}
+  .tl .pat-inline{white-space:normal;word-break:break-all}
+  /* スマホ: 冒頭の要約チップを2列均等グリッドにして幅・高さを揃える */
+  .topbar{padding:18px 14px 14px}
+  .topbar p{font-size:13.5px}
+  .quick-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .qs{display:flex;flex-direction:column;justify-content:center}
+  .qs b{font-size:14px;line-height:1.45}
+  /* スマホ: 目次チップを均等幅で中央寄せ */
+  .toc nav{padding:4px 4px 8px}
+  .toc a{flex:1 1 calc(33.333% - 8px);justify-content:center;text-align:center;margin:4px}
+  /* スマホ: 図鑑・モンスターを2列均等に */
+  .pattern-grid{grid-template-columns:repeat(2,1fr)}
+  .pat .p{font-size:13px;letter-spacing:.06em}
+  .pat .dots{gap:2px}
+  .dot{width:11px;height:11px}
+  .mon-grid{grid-template-columns:repeat(2,1fr)}
+  .tempo-bars{height:88px}
+  .filters button{flex:1 1 auto}
+  section h2{font-size:19px}
+}
+@media(max-width:380px){
+  .pattern-grid{grid-template-columns:1fr 1fr}
+  .pat .p{font-size:12px}
+  .toc a{flex-basis:calc(50% - 8px)}
+}
+/* スマホ横向き（高さが低い）でもはみ出さず読めるように圧縮 */
+@media(orientation:landscape) and (max-height:540px){
+  .topbar{padding:12px 16px 10px}
+  .topbar h1{font-size:26px}
+  .topbar p{font-size:13px}
+  .quick-stats{display:flex;flex-wrap:nowrap;overflow-x:visible}
+  .qs{flex:1 1 0;min-width:0}
+  .sky{grid-template-columns:repeat(7,1fr)}
+  .sky div{padding:8px 4px;font-size:12px}
+  .sky small{font-size:10px}
+  section{padding:16px}
+}
+footer{max-width:1120px;margin:0 auto;padding:0 16px 40px;color:var(--muted);font-size:13px}
+.toc-top{display:inline-block;margin-top:16px;font-weight:700}
+</style>
+</head>
+<body>
+
+<header class="topbar" id="top">
+  <div class="topbar-inner">
+    <div class="game-label">Rhythm Action — Wiki</div>
+    <h1>パリィゲーム <span>攻略まとめ</span></h1>
+    <p>合図のリズム通りに「パリィ」と「回避」で捌くリズムアクション。全パターン・判定・解禁を集約。</p>
+    <div class="quick-stats">
+      <div class="qs"><small>パターン</small><b>全40種</b></div>
+      <div class="qs"><small>クリア</small><b>ノーマル 10:00 ／ ハード 15:00</b></div>
+      <div class="qs"><small>最速テンポ</small><b>ノーマル 320ms（約9:00）／ ハード 170ms（約14:00）</b></div>
+      <div class="qs"><small>完璧判定</small><b>±40ms</b></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <aside class="toc" aria-label="目次">
+    <h2>目次 — CONTENTS</h2>
+    <nav>
+      <a href="#overview"><span class="num">1</span>ゲーム概要</a>
+      <a href="#controls"><span class="num">2</span>操作方法</a>
+      <a href="#judge"><span class="num">3</span>判定</a>
+      <a href="#gauge"><span class="num">4</span>自信ゲージ</a>
+      <a href="#types"><span class="num">5</span>攻撃の種類</a>
+      <a href="#tempo"><span class="num">6</span>テンポ表</a>
+      <a href="#unlock"><span class="num">7</span>解禁表</a>
+      <a href="#rates"><span class="num">8</span>出現率</a>
+      <a href="#patterns"><span class="num">9</span>パターン図鑑</a>
+      <a href="#rhythm"><span class="num">10</span>強攻撃</a>
+      <a href="#tutorial"><span class="num">11</span>チュートリアル</a>
+      <a href="#monsters"><span class="num">12</span>モンスター・演出</a>
+      <a href="#sky"><span class="num">13</span>空と天気</a>
+      <a href="#calibration"><span class="num">14</span>タイミング補正</a>
+    </nav>
+  </aside>
+
+  <main>
+    <!-- 1 -->
+    <section id="overview">
+      <h2>ゲーム概要</h2>
+      <p class="lead">魔王の攻撃は、必ず<strong>合図音とまったく同じリズム</strong>で飛んでくる。合図を聞いてリズムを覚え、着弾の瞬間に正しいボタンを押すのが基本。<strong>ノーマルは生存10:00、ハードは生存15:00到達でクリア（勝利）</strong>となり、ランはそこで終了する。</p>
+      <dl class="kv">
+        <div><dt>クリア条件</dt><dd>ノーマル 10:00 ／ ハード 15:00 到達でクリア（勝利）・ラン終了</dd></div>
+        <div><dt>体力</dt><dd>自信ゲージ（0でゲームオーバー）</dd></div>
+        <div><dt>単発の着弾</dt><dd>合図の2拍後（4スロット後）</dd></div>
+        <div><dt>連撃</dt><dd>合図と攻撃が完全に同じリズム</dd></div>
+        <div><dt>見分け方</dt><dd>白〜青白い閃光＋盾 ＝ パリィ ／ 赤オーラ＋ドクロ ＝ 回避のみ ／ 金色＋◆ ＝ 同時押し</dd></div>
+      </dl>
+      <div class="callout blue"><b>攻略の鉄則</b>輪（リング）は目安。判定は「押した時刻と着弾時刻の差」だけで決まる。音のリズムを体で覚える方が、目で輪を追うより安定する。</div>
+      <h3>結果画面</h3><p>成功入力の平均偏差（負＝早い、正＝遅い）、平均絶対誤差、標準偏差を表示する。結果からタイトルへ戻れる。</p>
+      <p>クリア時は結果画面の見出しが<strong>「あなたは魔王の猛攻を耐えきった！世界の平穏は保たれた？」</strong>になり、緑の表示＋到達時刻（ノーマル「10:00到達」／ハード「15:00到達」）と専用ファンファーレが付く。見出しの最後の<strong>「？」だけは少し遅れて表示される</strong>（文言が一拍置いて締まる演出）。スコアとベスト記録の扱いはゲームオーバー時と通常通り。<strong>ベストスコア／ベスト時間はモード別にブラウザ内に保存・表示される（保存不可の場合はセッション内のみ）</strong>：ノーマルで出した記録はノーマルのベストに、ハードで出した記録はハードのベストにそれぞれ入り、混ざることはない。</p>
+      <p>結果画面には<strong>遊んだモード名</strong>が表示される（<strong>ノーマル</strong>／<strong>ハード</strong>）。チュートリアルは本編とは別の独立セッションのため、結果画面のモード表示には入らない。チュートリアルを全種目クリアすると結果画面ではなく専用の<strong>完了画面</strong>が出る（→ <a href="#tutorial">チュートリアル</a>）。</p>
+      <p>結果画面には判定ごとの集計に加えて、<strong>種別ごとの成功率</strong>（成功数／試行数と％）が表示される。自分の弱点がどの種別かを見て練習の的を絞れる。判定集計にはパリィ側の「うち完璧パリィ」「うちグッドパリィ」と並んで、回避側にも<strong>「うちグッド回避」</strong>の行があり、回避成功の内訳（完璧／グッド／通常）が分かる。</p>
+      <div class="table-wrap"><table>
+        <tr><th>種別</th><th>集計の仕方</th></tr>
+        <tr><td>単発</td><td>単発攻撃の成功数／試行数（％）</td></tr>
+        <tr><td>連撃</td><td>連撃の成功数／試行数（％）</td></tr>
+        <tr><td>強攻撃</td><td>強攻撃の成功数／試行数（％）</td></tr>
+        <tr><td>同時押し</td><td>同時押しの成功数／試行数（％）</td></tr>
+        <tr><td>暗転時</td><td>暗転中に出た攻撃の成功数／試行数（％）</td></tr>
+      </table></div>
+      <p class="small">※ 同時押しと暗転時は<strong>重なる集計</strong>：暗転中の同時押しは「同時押し」と「暗転時」の両方にカウントされる。試行数が0の種別は「—」と表示される。</p>
+    </section>
+
+    <!-- 2 -->
+    <section id="controls">
+      <h2>操作方法</h2>
+      <p>使うボタンは「パリィ」と「回避」の2つだけ。まずモードを選んでスタートし、飛んでくる攻撃をこの2ボタンで捌いていく。</p>
+      <div class="table-wrap"><table>
+        <tr><th>環境</th><th><span style="color:#fca5a5">回避（赤）</span></th><th><span style="color:#7dd3fc">パリィ（青）</span></th><th>その他</th></tr>
+        <tr><td><b>スマホ / タブレット</b></td><td>左の赤ボタン</td><td>右の青ボタン</td><td>一時停止ボタン</td></tr>
+        <tr><td><b>PC キーボード</b></td><td>左半分のキー全部</td><td>右半分のキー全部</td><td><span class="mono">P</span> で一時停止</td></tr>
+      </table></div>
+      <p>PCは<strong>物理キー判定</strong>で全キー対応。速い連撃は複数指で、同時押しは両手で押すのが前提の設計。</p>
+      <div class="callout blue"><b>モード選択 — タイトル画面の3択セレクタ</b>タイトル画面では<strong>「チュートリアル」「ノーマル」「ハード」</strong>の3つから選んでスタートする。<strong>ノーマル</strong>＝そのまま本編（ノーマル速度）。<strong>ハード</strong>＝最初から速いハード速度（1拍300ms始まり）で本編のみ、<strong>チュートリアルは強制的になし</strong>（付けることはできない）。</div>
+      <div class="callout blue"><b>メニュー操作（タイトル・選択肢）</b>選択肢が複数ある画面（モード選択など）では、<strong>キーボードの矢印キー（↑↓←→）で選択肢を移動</strong>でき、<strong>パリィボタン／キーボード右半分のキーで決定</strong>できる。マウスやタップでの選択も使える。スマホではボタン自体をタップして選ぶ。</div>
+      <div class="callout blue"><b>途中でやめる — タイトルに戻る</b>ポーズ画面（<span class="mono">P</span>／一時停止ボタン）には<strong>「タイトルに戻る」</strong>ボタンがある。押すとそのランは<strong>破棄され、スコアや記録は残らず</strong>タイトル画面へ戻る。最初からやり直したいときや、調子が悪いランを切りたいときに使える。</div>
+      <div class="callout gold"><b>ソフトスタート（本編の入り）</b>本編（ノーマル／ハード）は開始直後、<strong>攻撃間隔の下限が約3000ms</strong>から始まり、<strong>15秒かけて通常間隔へ線形に緩やかに近づく</strong>。いきなり本番の密度で始まることはなく、15秒を過ぎると本来のテンポと密度に移行する。</div>
+    </section>
+
+    <!-- 3 -->
+    <section id="judge">
+      <h2>判定</h2>
+      <p>着弾時刻とのズレ（絶対値）で決まる。表示は判定と連動し、成功時は<strong>方向＋ズレのms数値が併記</strong>される：<strong>完璧なら <span class="mono">JUST 12ms</span></strong> のように JUST にも数値が付き、<strong>グッド／通常成功なら <span class="mono">EARLY 73ms</span>（早い）/ <span class="mono">LATE 58ms</span>（遅い）</strong> のように方向と数値が一緒に出る。数値が小さいほど着弾に近い。パリィ・回避・同時押しのすべてが<strong>完璧／グッド／通常成功の3段階</strong>で判定される（回避にもグッド段階がある）。</p>
+      <p>成功の上限である<strong>成功窓</strong>は固定ではなく、その攻撃の<strong>半拍スロット間隔</strong>に連動する：<strong>成功窓 ＝ min(100ms, 間隔 × 0.9)</strong>。間隔が広いうちは ±100ms のままだが、間隔が約111msを下回ると成功窓だけが連動して狭まっていく。<strong>完璧 ±40ms とグッド ±75ms は常に不変</strong>で、狭まるのは通常成功の外側だけ。</p>
+      <div class="table-wrap"><table>
+        <tr><th>判定</th><th class="num">許容範囲</th><th>意味</th></tr>
+        <tr><td><span class="badge badge-gold">完璧</span></td><td class="num mono">±40ms</td><td>最高段階。パリィ／同時押しは回復 +6、回避は回復 +2</td></tr>
+        <tr><td><span class="badge badge-blue">グッド</span></td><td class="num mono">±75ms</td><td>成功扱いの中間判定。下支えとして回復 +1（パリィ／回避／同時押し共通）</td></tr>
+        <tr><td><span class="badge badge-green">成功</span></td><td class="num mono">最大 ±100ms</td><td>通常成功。成功窓 ＝ min(100ms, 間隔 × 0.9)。間隔が狭い終盤ではこの範囲が狭まる（下記）。ここを外すと被弾</td></tr>
+        <tr><td><span class="badge badge-gray">失敗</span></td><td class="num mono">成功窓超</td><td>被弾。ただし開始20秒間はゲームオーバーにならない猶予あり</td></tr>
+      </table></div>
+      <div class="callout gold"><b>成功窓の具体例 — 終盤ほど通常成功が狭い</b>ハード終盤は1拍170msで半拍間隔は<strong>85ms</strong>。このとき成功窓は 85 × 0.9 ＝ 76.5ms で、<strong>約±77ms</strong>まで狭まる（完璧 ±40ms・グッド ±75ms はそのまま）。つまりハード終盤の連撃では、グッド帯（±75ms）をわずかに超えた押しは通常成功にならず被弾になる。ノーマル終盤は半拍160msで 160 × 0.9 ＝ 144ms が上限100msを上回るため、成功窓は <strong>±100ms のまま</strong>変わらない。</div>
+      <h3>判定段階ごとのスコア・演出（対処別）</h3>
+      <div class="table-wrap"><table>
+        <tr><th>対処</th><th>完璧（±40ms）</th><th>グッド（±75ms）</th><th>通常成功（成功窓内）</th></tr>
+        <tr><td><span class="badge badge-blue">パリィ</span></td><td><b>300点</b>・回復 +6・ヒットストップ 70ms</td><td><b>220点</b>・回復 +1・ヒットストップ 35ms</td><td><b>150点</b></td></tr>
+        <tr><td><span class="badge badge-red">回避</span></td><td><b>150点</b>・回復 +2・ヒットストップ 70ms<br><span class="small">完璧回避</span></td><td><b>110点</b>・回復 +1・ヒットストップ 35ms<br><span class="small">グッド回避</span></td><td><b>80点</b><br><span class="small">回避成功</span></td></tr>
+        <tr><td><span class="badge badge-gold">同時押し</span></td><td><b>300点</b>・回復 +6（両方とも完璧）</td><td><b>220点</b>・回復 +1（<b>両押しとも ±75ms以内</b>が条件）・ヒットストップ 35ms</td><td><b>150点</b></td></tr>
+      </table></div>
+      <p class="small">※ 同時押しのグッドは片側だけでは成立しない。両方の入力がともに ±75ms 以内に入ったときだけグッドになる（完璧も同様に両方とも ±40ms 以内）。<br>※ 判定窓の外で押してもペナルティはない。空振りを恐れずリズムに乗る方が得。<br>※ 通常成功の範囲（成功窓）は間隔連動：成功窓 ＝ min(100ms, 半拍スロット間隔 × 0.9)。完璧・グッドの幅は間隔によらず固定。</p>
+      <div class="callout blue"><b>判定テキストの色</b>判定テキストの色は<strong>段階色が優先</strong>される：<strong>完璧＝金色、グッド＝緑色</strong>で表示される。攻撃の種別色（パリィ＝青白、回避＝赤、同時押し＝金）が出るのは<strong>通常成功のときだけ</strong>で、完璧／グッドでは段階が色でも判別できる。</div>
+      <div class="callout gold"><b>JUST表示＝完璧判定（ms数値つき）</b><span class="mono">JUST</span> 表示は、<strong>完璧判定（±40ms以内）のときにちょうど出る</strong>表示。グッド（±75ms以内）／通常成功（成功窓内）のときは JUST は出ず、<span class="mono">EARLY</span>／<span class="mono">LATE</span> 表示になる。表示には<strong>常にズレのms数値が併記</strong>される（例：<span class="mono">JUST 12ms</span>、<span class="mono">EARLY 73ms</span>）ため、JUST の時も「あと何msズレていたか」が分かる。<strong>JUST＝完璧</strong>だが、回復量は対処によって異なる：<strong>パリィ／同時押しの完璧は +6、完璧回避は +2</strong>。さらに<strong>通常攻撃（パリィできる攻撃）を回避した場合は、タイミングが完璧で JUST 表示でも −6</strong>になる（回避自体は成功でもペナルティが優先される）。完璧は ±0ms の点ではなく ±40ms の幅で定義されているため、少しズレた感覚でも JUST になることがある。</div>
+    </section>
+
+    <!-- 4 -->
+    <section id="gauge">
+      <h2>自信ゲージの増減</h2>
+      <p>判定の結果は、そのまま自信ゲージの増減に直結する。良い判定で回復し、被弾やミスで減っていく。0になるとゲームオーバー。</p>
+      <h3>回復</h3>
+      <div class="table-wrap"><table>
+        <tr><th>行動</th><th class="num">変化</th></tr>
+        <tr><td>完璧パリィ（±40ms）</td><td class="num plus">+6</td></tr>
+        <tr><td>同時押し（両方とも完璧）</td><td class="num plus">+6</td></tr>
+        <tr><td>完璧回避（±40ms）</td><td class="num plus">+2</td></tr>
+        <tr><td>グッドパリィ（±75ms）</td><td class="num plus">+1</td></tr>
+        <tr><td>グッド回避（±75ms）</td><td class="num plus">+1</td></tr>
+        <tr><td>同時グッド（両押しとも ±75ms以内）</td><td class="num plus">+1</td></tr>
+        <tr><td>通常成功（成功窓内、完璧／グッドでない成功）</td><td class="num">0（回復なし）</td></tr>
+      </table></div>
+      <h3>被弾・ミス</h3>
+      <div class="table-wrap"><table>
+        <tr><th>状況</th><th class="num">変化</th><th>備考</th></tr>
+        <tr><td>強攻撃で被弾</td><td class="num minus">−28</td><td>最も重い。1発で約1/4削れる</td></tr>
+        <tr><td>赤攻撃で被弾</td><td class="num minus">−20</td><td>回避専用攻撃</td></tr>
+        <tr><td>同時押しを何も押さなかった</td><td class="num minus">−20</td><td>無入力は片側ミスより重い</td></tr>
+        <tr><td>同時押しを片側だけ押した</td><td class="num minus">−16</td><td>両手押し必須</td></tr>
+        <tr><td>通常攻撃で被弾</td><td class="num minus">−10</td><td>—</td></tr>
+        <tr><td>パリィできる攻撃を回避した</td><td class="num minus">−6</td><td>回避は安全だが損。完璧パリィで +6 を狙う場面。この −6 のときもタイミング表示（<span class="mono">JUST 12ms</span>／<span class="mono">EARLY 73ms</span>／<span class="mono">LATE 58ms</span> のように方向＋ms数値）が表示される</td></tr>
+      </table></div>
+      <div class="callout red"><b>立ち回りの結論</b>回復の柱は完璧パリィ（+6）と完璧回避（+2）。グッド帯には下支えとして +1 が付く（グッドパリィ／グッド回避／同時グッド共通）ため、ミスが続いた時でも少しずつ立て直せる。通常成功では回復は付かない。通常攻撃を回避すると −6 なので、完璧を狙う価値は依然として高い。赤だけ確実に回避。強攻撃は −28 なので最優先でリズムを取る。</div>
+    </section>
+
+    <!-- 5 -->
+    <section id="types">
+      <h2>攻撃の種類と見分け方</h2>
+      <p>飛んでくる攻撃は、色とマークで対処法が決まっている。判定とゲージの仕組みを踏まえたうえで、攻撃ごとの見分け方と捌き方を確認する。</p>
+      <div class="table-wrap"><table>
+        <tr><th>種類</th><th>対処</th><th>特徴</th></tr>
+        <tr><td><span class="badge badge-blue">通常（白）</span></td><td>パリィ推奨</td><td>基本の攻撃。完璧パリィで +6 回復、グッドパリィで +1。回避でも被弾はしないが <b>−6</b> のペナルティがあり、その際も <span class="mono">JUST 12ms／EARLY 73ms／LATE 58ms</span> のように方向＋ms数値が表示される</td></tr>
+        <tr><td><span class="badge badge-red">赤攻撃 45%</span></td><td>回避のみ（パリィ不可）</td><td>最初から45%で固定。パリィしようとすると被弾 −20</td></tr>
+        <tr><td><span class="badge badge-gold">同時押し</span></td><td>パリィ＋回避を同時</td><td>0秒から出現。片側だけだと −16、無入力だと −20</td></tr>
+        <tr><td><span class="badge badge-blue">速い！</span></td><td>各発を個別にパリィ／回避</td><td>30秒〜解禁、<strong>低頻度枠で単独で出現</strong>する単発系の変種。リズムは<strong>「速い！」</strong>：合図が<strong>半拍間隔で2連（タタ）</strong>で鳴り、<strong>2スロット空けて</strong>着弾が<strong>半拍間隔で2連（ドド）</strong>で来る（<span class="mono">タ(0) タ(1) ◯(2) ◯(3) ド(4) ド(5)</span>）。<strong>合図の1音目＝1発目、2音目＝2発目</strong>の種別を表し、各発とも<strong>自分の合図の4スロット（2拍）後</strong>に着弾する。種別は<strong>発ごとにパリィ／回避のみ</strong>（赤 約45%、<strong>同時押しは混ざらない</strong>）。判定・スコア・回復・ダメージは<strong>単発と同一</strong>で、結果画面の種別内訳では<strong>単発に数える</strong></td></tr>
+        <tr><td><span class="badge badge-gray">強攻撃</span></td><td>合図のリズム通りに連続対処</td><td>25秒〜解禁。被弾 −28 と最も重い（→ <a href="#rhythm">10章</a>）</td></tr>
+      </table></div>
+    </section>
+
+    <!-- 6 -->
+    <section id="tempo">
+      <h2>テンポ（速度アップ）表</h2>
+      <p>段階スケジュールは<strong>モードごとに別</strong>で、どちらも<strong>全20段</strong>、1段の短縮幅は共通（前半10段 −7ms／段、後半10段 −6ms／段）。違うのは開始値・下限・段の進む間隔と到達時刻だけ。<strong>ノーマルは 450ms → 320ms</strong>：<strong>約0:25から約27秒ごとに1段</strong>進み、<strong>約9:00で下限320msに到達</strong>する。到達後は下限で固定され、クリア（10:00）までの残り1分を最速のまま耐え切る。<strong>ハードは 300ms → 170ms</strong>：<strong>約0:40から約42秒ごとに1段</strong>進み、<strong>約14:00で下限170msに到達</strong>する。到達後は下限で固定され、ハードもクリア（15:00）までの残り1分を最速のまま耐え切る構成になっている。チュートリアルは独立セッションでテンポが<strong>1拍450msに固定</strong>されるため、このスケジュールの対象外（SPEED UP・段階変化は発生しない）。</p>
+      <h3>ノーマル（450ms → 320ms）— 約27秒ごとに1段、約9:00で最速到達（クリアは10:00）</h3>
+      <div class="tempo-wrap"><div class="tempo-bars" id="tempoBarsN" aria-hidden="true"></div></div>
+      <div class="table-wrap"><table>
+        <tr><th>時刻</th><th class="num">1拍</th><th class="num">半拍</th><th>区間</th></tr>
+        <tr><td class="mono">約0:00</td><td class="num mono">450ms</td><td class="num mono">225ms</td><td>開始</td></tr>
+        <tr><td class="mono">約0:25</td><td class="num mono">443ms</td><td class="num mono">221.5ms</td><td rowspan="10">前半10段：−7ms／段（約27秒ごと）</td></tr>
+        <tr><td class="mono">約0:55</td><td class="num mono">436ms</td><td class="num mono">218ms</td></tr>
+        <tr><td class="mono">約1:20</td><td class="num mono">429ms</td><td class="num mono">214.5ms</td></tr>
+        <tr><td class="mono">約1:50</td><td class="num mono">422ms</td><td class="num mono">211ms</td></tr>
+        <tr><td class="mono">約2:15</td><td class="num mono">415ms</td><td class="num mono">207.5ms</td></tr>
+        <tr><td class="mono">約2:40</td><td class="num mono">408ms</td><td class="num mono">204ms</td></tr>
+        <tr><td class="mono">約3:10</td><td class="num mono">401ms</td><td class="num mono">200.5ms</td></tr>
+        <tr><td class="mono">約3:35</td><td class="num mono">394ms</td><td class="num mono">197ms</td></tr>
+        <tr><td class="mono">約4:05</td><td class="num mono">387ms</td><td class="num mono">193.5ms</td></tr>
+        <tr><td class="mono">約4:30</td><td class="num mono">380ms</td><td class="num mono">190ms</td></tr>
+        <tr><td class="mono">約4:55</td><td class="num mono">374ms</td><td class="num mono">187ms</td><td rowspan="9">後半10段：−6ms／段（約27秒ごと）</td></tr>
+        <tr><td class="mono">約5:25</td><td class="num mono">368ms</td><td class="num mono">184ms</td></tr>
+        <tr><td class="mono">約5:50</td><td class="num mono">362ms</td><td class="num mono">181ms</td></tr>
+        <tr><td class="mono">約6:20</td><td class="num mono">356ms</td><td class="num mono">178ms</td></tr>
+        <tr><td class="mono">約6:45</td><td class="num mono">350ms</td><td class="num mono">175ms</td></tr>
+        <tr><td class="mono">約7:10</td><td class="num mono">344ms</td><td class="num mono">172ms</td></tr>
+        <tr><td class="mono">約7:40</td><td class="num mono">338ms</td><td class="num mono">169ms</td></tr>
+        <tr><td class="mono">約8:10</td><td class="num mono">332ms</td><td class="num mono">166ms</td></tr>
+        <tr><td class="mono">約8:35</td><td class="num mono">326ms</td><td class="num mono">163ms</td></tr>
+        <tr><td class="mono"><b>約9:00〜</b></td><td class="num mono"><b>320ms</b></td><td class="num mono"><b>160ms</b></td><td><b>最速に到達、以後固定（クリアは10:00）</b></td></tr>
+      </table></div>
+      <h3>ハード（300ms → 170ms）— 約42秒ごとに1段、約14:00で最速到達</h3>
+      <div class="tempo-wrap"><div class="tempo-bars" id="tempoBarsH" aria-hidden="true"></div></div>
+      <div class="table-wrap"><table>
+        <tr><th>時刻</th><th class="num">1拍</th><th class="num">半拍</th><th>区間</th></tr>
+        <tr><td class="mono">約0:00</td><td class="num mono">300ms</td><td class="num mono">150ms</td><td>開始</td></tr>
+        <tr><td class="mono">約0:40</td><td class="num mono">293ms</td><td class="num mono">146.5ms</td><td rowspan="10">前半10段：−7ms／段（約42秒ごと）</td></tr>
+        <tr><td class="mono">約1:25</td><td class="num mono">286ms</td><td class="num mono">143ms</td></tr>
+        <tr><td class="mono">約2:05</td><td class="num mono">279ms</td><td class="num mono">139.5ms</td></tr>
+        <tr><td class="mono">約2:50</td><td class="num mono">272ms</td><td class="num mono">136ms</td></tr>
+        <tr><td class="mono">約3:30</td><td class="num mono">265ms</td><td class="num mono">132.5ms</td></tr>
+        <tr><td class="mono">約4:10</td><td class="num mono">258ms</td><td class="num mono">129ms</td></tr>
+        <tr><td class="mono">約4:55</td><td class="num mono">251ms</td><td class="num mono">125.5ms</td></tr>
+        <tr><td class="mono">約5:35</td><td class="num mono">244ms</td><td class="num mono">122ms</td></tr>
+        <tr><td class="mono">約6:20</td><td class="num mono">237ms</td><td class="num mono">118.5ms</td></tr>
+        <tr><td class="mono">約7:00</td><td class="num mono">230ms</td><td class="num mono">115ms</td></tr>
+        <tr><td class="mono">約7:40</td><td class="num mono">224ms</td><td class="num mono">112ms</td><td rowspan="9">後半10段：−6ms／段（約42秒ごと）</td></tr>
+        <tr><td class="mono">約8:25</td><td class="num mono">218ms</td><td class="num mono">109ms</td></tr>
+        <tr><td class="mono">約9:05</td><td class="num mono">212ms</td><td class="num mono">106ms</td></tr>
+        <tr><td class="mono">約9:50</td><td class="num mono">206ms</td><td class="num mono">103ms</td></tr>
+        <tr><td class="mono">約10:30</td><td class="num mono">200ms</td><td class="num mono">100ms</td></tr>
+        <tr><td class="mono">約11:10</td><td class="num mono">194ms</td><td class="num mono">97ms</td></tr>
+        <tr><td class="mono">約11:55</td><td class="num mono">188ms</td><td class="num mono">94ms</td></tr>
+        <tr><td class="mono">約12:35</td><td class="num mono">182ms</td><td class="num mono">91ms</td></tr>
+        <tr><td class="mono">約13:20</td><td class="num mono">176ms</td><td class="num mono">88ms</td></tr>
+        <tr><td class="mono"><b>約14:00〜</b></td><td class="num mono"><b>170ms</b></td><td class="num mono"><b>85ms</b></td><td><b>最速に到達、以後固定（クリアは15:00）</b></td></tr>
+      </table></div>
+      <p class="small">※ 表の時刻はすべて5秒単位に丸めた約表記。半拍＝連撃の最短間隔。1段の短縮幅は両モード共通（前半 −7ms／後半 −6ms）で、違うのは段の進む間隔（ノーマル約27秒ごと／ハード約42秒ごと）と開始値・下限・到達時刻。</p>
+      <div class="callout gold"><b>最速帯がきつい理由</b>ハード170msでは単発は着弾まで2拍＝340msあるので対応可能。きついのは連撃の半拍スロットで間隔85ms（ノーマル320msでも半拍160ms）。反応ではなく「合図を覚えて先読みで指を動かす」領域になる。さらにハード終盤は成功窓も間隔連動で約±77msまで狭まる（→ <a href="#judge">判定</a>）。ハードは約14:00で下限に到達したあと、クリアの15:00まで1分間この速度が続く。</div>
+      <h3>時間帯の目安</h3>
+      <div class="table-wrap"><table>
+        <tr><th>時間帯</th><th>位置づけ</th></tr>
+        <tr><td class="mono">〜1:00</td><td>導入。基本操作と同時押しに慣れる</td></tr>
+        <tr><td class="mono">1:00〜3:00</td><td>基礎。連撃・強攻撃連続型・変3連が出揃う</td></tr>
+        <tr><td class="mono">3:00〜6:00</td><td>中級〜上級。8スロット高難度帯＋300秒で簡単パターン除外</td></tr>
+        <tr><td class="mono">6:00〜9:00</td><td>上級。テンポが下限へ近づいていく（ノーマルは約9:00で下限320msに到達）</td></tr>
+        <tr><td class="mono">9:00〜10:00</td><td>ノーマルは最速320ms固定のままクリア（10:00）へ。ハードはまだ加速中</td></tr>
+        <tr><td class="mono">10:00〜14:00</td><td>ハードはさらに加速が続き、約14:00で下限170msに到達する</td></tr>
+        <tr><td class="mono">14:00〜15:00</td><td>限界域（ハード）。テンポは下限170ms固定のまま連撃率が上限62%で密度勝負。15:00到達でクリア</td></tr>
+      </table></div>
+    </section>
+
+    <!-- 7 -->
+    <section id="unlock">
+      <h2>解禁表 — 何秒で何が追加されるか</h2>
+      <p>記法：<span class="mono"><b>ピ</b>＝1発</span>、<span class="mono"><b>◯</b>＝休み（1スロット空く）</span>。各スロットがパリィ（ピ）か回避（ブ）かは別抽選で決まるため、同じ型でも左右の内訳は毎回変わる。</p>
+      <ul class="tl">
+        <li><span class="time">0秒</span><b>同時押し</b>は最初から（単発15%／連撃内10%）</li>
+        <li><span class="time">25秒</span><b>強攻撃単発</b>（溜め攻撃）解禁</li>
+        <li><span class="time">30秒</span><b>連撃</b>開始 <span class="pat-inline">ピ◯ピ◯</span> <span class="pat-inline">ピピピ◯</span></li>
+        <li><span class="time">30秒</span><b>速い！</b>解禁（低頻度枠で単独で出現。低頻度：〜300秒 約5.5%、以降 約10%。合図2連 <span class="pat-inline">タタ</span>（半拍間隔）→ 2スロット空けて着弾2連 <span class="pat-inline">ドド</span>（半拍間隔）：<span class="pat-inline">タ(0) タ(1) ◯(2) ◯(3) ド(4) ド(5)</span>。合図の1音目＝1発目、2音目＝2発目で、各発とも自分の合図の4スロット（2拍）後に着弾。種別は発ごとにパリィ／回避のみ、同時押しなし）</li>
+        <li><span class="time">45秒</span><b>暗転</b> 13%（初期状態はON、手動でOFFに切り替え可能）</li>
+        <li><span class="time">60秒</span><b>強攻撃連続型</b>（ポポポ→バーンの繰り返し、最大5回。合図は着弾の2拍前・1拍前・半拍前の3連で、テンポに追随して速くなる。<strong>3音とも同じ通常の合図音</strong>で、3音目だけの強調音はない）</li>
+        <li><span class="time">105秒</span>4連 <span class="pat-inline">ピピピピ</span> ／ 先行休み型 <span class="pat-inline">◯ピピ◯</span> <span class="pat-inline">◯◯ピピ</span></li>
+        <li><span class="time">120秒</span>変3連 <span class="pat-inline">ピピ◯ピ</span> <span class="pat-inline">◯ピピピ</span> <span class="pat-inline">◯ピ◯ピ</span> ／ 8スロット <span class="pat-inline">◯ピピピ◯ピピピ</span></li>
+        <li><span class="time">150秒</span><span class="pat-inline">ピ◯ピピ</span> <span class="pat-inline">ピ◯◯ピ</span> <span class="pat-inline">ピピ◯◯</span> <span class="pat-inline">ピピピ◯ピピピ◯</span> <span class="pat-inline">ピ◯ピ◯ピ◯ピ◯</span> <span class="pat-inline">◯ピ◯ピ◯ピ◯ピ</span> ／ 8連 <span class="pat-inline">ピピピピピピピピ</span></li>
+        <li><span class="time">165秒</span><span class="pat-inline">ピピ◯◯ピピ◯◯</span> <span class="pat-inline">ピ◯ピピピ◯ピピ</span> <span class="pat-inline">◯ピピ◯◯ピピ◯</span> <span class="pat-inline">◯◯ピピ◯◯ピピ</span></li>
+        <li><span class="time">180秒</span><span class="pat-inline">ピピ◯ピピピ◯ピ</span> <span class="pat-inline">ピピピ◯◯ピピピ</span></li>
+        <li><span class="time">195秒</span><span class="pat-inline">ピピ◯◯ピピピピ</span> <span class="pat-inline">ピピピ◯ピ◯ピピ</span> <span class="pat-inline">◯ピピ◯ピピピピ</span> <span class="pat-inline">ピピピピピピピ◯</span></li>
+        <li><span class="time">210秒</span><span class="pat-inline">ピピピ◯ピピ◯◯</span> <span class="pat-inline">ピ◯ピ◯ピピピ◯</span> <span class="pat-inline">ピ◯ピピ◯ピピ◯</span> <span class="pat-inline">◯ピピピピピピピ</span></li>
+        <li><span class="time">225秒</span><span class="pat-inline">ピピ◯◯ピ◯ピピ</span> <span class="pat-inline">ピ◯◯ピピ◯◯ピ</span> <span class="pat-inline">ピピピピピピ◯◯</span> <span class="pat-inline">ピピ◯ピ◯ピピ◯</span></li>
+        <li><span class="time">240秒</span><span class="pat-inline">◯◯ピピ◯ピピピ</span> <span class="pat-inline">ピ◯ピピピ◯◯ピ</span> <span class="pat-inline">◯◯ピピピピピピ</span> <span class="pat-inline">ピピ◯◯◯ピピピ</span> <span class="pat-inline">ピ◯◯ピピピピ◯</span> ／ <b>強攻撃の混合チェーン</b>（途中で種別が切り替わる）解禁</li>
+        <li><span class="time">255秒</span><span class="pat-inline">ピ◯ピ◯◯ピ◯ピ</span> — これで全40種が出揃う</li>
+        <li><span class="time">300秒</span><b>簡単パターン除外</b>：対称・拍どおりの型と、全発同じ種別の並びをプールから除外。以後は新解禁なし（速さと密度だけが残る）</li>
+      </ul>
+    </section>
+
+    <!-- 8 -->
+    <section id="rates">
+      <h2>出現率まとめ</h2>
+      <p>解禁された攻撃や要素が、時間とともにどれくらいの割合で出てくるか。後半ほど連撃と同時押しの比重が上がっていく。</p>
+      <div class="table-wrap"><table>
+        <tr><th>項目</th><th>推移・値</th></tr>
+        <tr><td><b>連撃の出現率</b></td><td>20%（30秒）→ 50%（約100秒）→ <b>62%（600秒〜上限）</b></td></tr>
+        <tr><td><b>強攻撃</b></td><td>単発抽選の <b>14%</b>（25秒〜）。そのうち連続型が <b>45%</b>（60秒〜）</td></tr>
+        <tr><td><b>赤攻撃</b></td><td><b>45%固定</b>（最初から最後まで不変）</td></tr>
+        <tr><td><b>同時押し・単発</b></td><td>15% → <b>20%（240秒〜）</b></td></tr>
+        <tr><td><b>同時押し・連撃内</b></td><td>10% → <b>最大25%</b>（時間で上昇：240秒で約15%、480秒で約22%）</td></tr>
+        <tr><td><b>変3連</b></td><td>3連のうち 35% → <b>55%（300秒〜）</b></td></tr>
+        <tr><td><b>8スロット族</b></td><td>連撃のうち 16% → <b>22%（600秒〜）</b></td></tr>
+        <tr><td><b>速い！</b></td><td>低頻度枠で単独で出現：〜300秒 <b>約5.5%</b> → 以降 <b>約10%</b>（30秒〜解禁）。合図2連（半拍間隔）→ 2スロット空けて着弾2連（半拍間隔）。種別は発ごとにパリィ／回避のみ（赤 約45%、同時押しなし）。判定・スコア・回復・ダメージは単発と同一、内訳では単発に数える</td></tr>
+        <tr><td><b>暗転</b></td><td>13%（45秒〜、初期状態ON・手動でOFFに切り替え可能）</td></tr>
+      </table></div>
+      <h3>強攻撃のチェーン回数分布</h3>
+      <div class="table-wrap"><table>
+        <tr><th>時間帯</th><th class="num">2回</th><th class="num">3回</th><th class="num">4回</th><th class="num">5回</th></tr>
+        <tr><td>〜150秒（〜2:30）</td><td class="num">70%</td><td class="num">30%</td><td class="num">なし</td><td class="num">なし</td></tr>
+        <tr><td>150〜240秒（2:30〜4:00）</td><td class="num">48%</td><td class="num">28%</td><td class="num">16%</td><td class="num">8%</td></tr>
+        <tr><td>240秒〜（4:00〜）</td><td class="num">38%</td><td class="num">30%</td><td class="num">20%</td><td class="num">12%</td></tr>
+      </table></div>
+      <p class="small">※ 5回チェーンは全時間帯で最もレア（中盤8%、240秒〜でも12%）。</p>
+    </section>
+
+    <!-- 9 -->
+    <section id="patterns">
+      <h2>パターン図鑑 — 全40種</h2>
+      <p>4スロット11種＋8スロット29種。各スロットのピ（パリィ）／ブ（回避）は別抽選なので、図鑑は「発射のリズム型」の一覧。</p>
+      <div class="legend"><span><i style="background:#dc2626"></i>ピ ＝ 1発</span><span><i style="border:2px solid #9aa8a0;background:transparent"></i>◯ ＝ 休み</span></div>
+      <div class="filters" role="group" aria-label="パターン絞り込み">
+        <button class="active" data-f="all">すべて（40）</button>
+        <button data-f="4">4スロット（11）</button>
+        <button data-f="8">8スロット（29）</button>
+      </div>
+      <h3>4スロット</h3>
+      <div class="pattern-grid" id="grid4"></div>
+      <h3>8スロット</h3>
+      <div class="pattern-grid" id="grid8"></div>
+    </section>
+
+    <!-- 10 -->
+    <section id="rhythm">
+      <h2>強攻撃の構造</h2>
+      <p>被弾 −28 の最重量攻撃。仕組みを知れば「暗記ゲー」ではなく「合図の再演」だと分かる。</p>
+      <div class="table-wrap"><table>
+        <tr><th>段階</th><th>内容</th></tr>
+        <tr><td><b>1回目</b></td><td>ティック音が <b>5音</b>（2拍間隔）。<b>5音目で着弾</b></td></tr>
+        <tr><td><b>2回目以降</b>（連続型）</td><td>次の着弾に向けて「<b>ポポポ</b>」の<strong>3連合図</strong>が鳴る：<strong>着弾の2拍前・1拍前・半拍前</strong>の3音で、間隔はその時点の<strong>テンポ（1拍）に追随</strong>して短くなる → その直後に着弾。<strong>3音目は強調音ではなく、1・2音目と同じ通常の合図音に統一</strong>されている（最後のポも合図音のみ）</td></tr>
+        <tr><td><b>攻撃間隔</b></td><td>2拍</td></tr>
+        <tr><td><b>回数</b></td><td>最大5回。5回は最もレア。分布は <a href="#rates">出現率の章</a> を参照</td></tr>
+        <tr><td><b>混合チェーン</b>（240秒〜）</td><td>連続の途中で種別（パリィ／回避）が切り替わる回が混ざる。全ラウンド同じボタンとは限らない</td></tr>
+        <tr><td><b>種別の判別</b></td><td>各ラウンドの種別は「ポポポ」の<b>音色</b>と、魔王の<b>目・バッジの色</b>で分かる。<b>暗転中はラウンドごとの目の色</b>が頼り（最終ラウンド含め全ラウンドで目が種別色に光る）</td></tr>
+        <tr><td><b>激突演出（段階連動）</b></td><td>強攻撃の激突演出は判定段階と連動する。<b>完璧の時だけ</b>最大演出（白フラッシュ＋二重リング＋ヒットストップ <b>110ms</b>）。グッドは一段小さい演出、通常成功は単リングのみ</td></tr>
+      </table></div>
+      <div class="callout blue"><b>覚え方</b>「ポポポ→バーン」のサイクルがそのまま繰り返される。ポポポは着弾の<strong>2拍前・1拍前・半拍前</strong>に鳴る3連で、<strong>3音とも同じ通常の合図音</strong>（3音目だけ音が変わったり強調されたりはしない）。テンポが上がれば合図の間隔も一緒に縮む。1回目の5音で拍の長さを掴めば、2回目以降はポポポの3音目（半拍前）のタイミングを目安に押し続けるだけ。240秒〜の混合チェーンでは、毎ラウンド「ポポポ」の音色と目の色で種別を確認してから押す。</div>
+      <h3>フィニッシュ演出も段階連動</h3>
+      <p>連撃の<strong>最終発</strong>のフィニッシュ演出も、強攻撃の激突と同じく判定段階と連動する：</p>
+      <div class="table-wrap"><table>
+        <tr><th>最終発の判定</th><th>フィニッシュ演出</th></tr>
+        <tr><td><span class="badge badge-gold">完璧</span></td><td>最大演出：白フラッシュ＋二重リング＋ヒットストップ <b>80ms</b></td></tr>
+        <tr><td><span class="badge badge-blue">グッド</span></td><td>一段小さい演出（最大演出より控えめ）</td></tr>
+        <tr><td><span class="badge badge-green">通常成功</span></td><td>単リングのみ</td></tr>
+        <tr><td><span class="badge badge-gray">失敗</span></td><td><b>フィニッシュ演出は出ない</b></td></tr>
+      </table></div>
+      <p class="small">※ 強攻撃の激突も同じ原則：最大演出は完璧専用。演出の大きさを見れば、テキストを見なくても段階が分かる。</p>
+    </section>
+
+    <!-- 11 -->
+    <section id="tutorial">
+      <h2>チュートリアル</h2><p>タイトルでチュートリアルを選ぶと、全8種目または個別種目を選択できる。個別練習は600／450／300／170msの固定拍で反復し、成功回数を表示する。本編記録には加算されず、ポーズから終了する。</p>
+      <p>本編の前に腕慣らしができる、種目別の独立セッション。1種目ずつ順番に出題され、クリアするまで次へは進まない。</p>
+      <p><strong>チュートリアル</strong>は本編の冒頭ではなく、<strong>それだけで完結する独立セッション</strong>。種目は<strong>単発パリィ → 回避 → 同時押し → 速い！ → 連撃 → 必殺（強攻撃） → 強攻撃の連続（チェーン） → 暗転</strong>の順で<strong>全8種目</strong>が出題され、<strong>各種目をクリアするまで同じ種目が再出題</strong>される（成功していない種目が勝手に終わることはない）。<strong>強攻撃の連続（チェーン）</strong>は、「ポポポ→着弾」の繰り返しを連続で捌く練習になる。</p>
+      <p>最後の種目<strong>暗転</strong>では、画面が暗転した状態で単発が出題される。輪や魔王の姿は見えないため、<strong>合図の音でタイミングを取り、光る目の色（青白＝パリィ／赤＝回避）で種別を判別</strong>して捌く。本編の暗転中と同じ読み方を、単発だけで落ち着いて練習できる種目。</p>
+      <p>チュートリアル中は<strong>体力ゲージが0になってもゲームオーバーにならず、1で留まってその種目を再出題</strong>する。テンポは<strong>1拍450msに固定</strong>され、<strong>SPEED UP・段階変化・休止小節・カウントイン・パターン強化は一切発生しない</strong>。</p>
+      <p>全8種目をクリアするとセッションはそこで終了し、<strong>「ナイス！次はノーマルでチャレンジ！」</strong>の完了画面が出る。<strong>ノーマルは自動では始まらない</strong>：ノーマルを始めるには完了画面のボタンから手動で開始する（<strong>タイトルに戻る</strong>ボタンもある）。チュートリアルは練習専用で、スコア・記録は本編に引き継がれない。</p>
+    </section>
+
+    <!-- 12 -->
+    <section id="monsters">
+      <h2>お邪魔モンスター・環境演出</h2>
+      <p>戦闘には影響しない演出枠。同時表示は<strong>最大2種類</strong>、出現間隔は<strong>最低25秒</strong>、動きはゆっくり。<strong>チュートリアル中は一切出現しない。</strong></p>
+      <h3>横切り — 通常枠</h3>
+      <div class="mon-grid">
+        <div class="mon"><div class="emoji">🦇</div><b>コウモリ</b><p>画面を横切る基本枠</p></div>
+        <div class="mon"><div class="emoji">🟢</div><b>スライム</b><p>ぷよぷよ進む</p></div>
+        <div class="mon"><div class="emoji">👻</div><b>幽霊</b><p>ふわふわ漂う</p></div>
+        <div class="mon"><div class="emoji">👺</div><b>ゴブリン</b><p>横切り＋修復担当（下記）</p></div>
+        <div class="mon"><div class="emoji">🎁</div><b>ミミック</b><p>ジャンプの頂点と着地で蓋がパカッと開き、口の中と牙・目が見える</p></div>
+        <div class="mon"><div class="emoji">🧺</div><b>商人</b><p>荷物を担いで歩いて横切る</p></div>
+      </div>
+      <h3>横切り — レア枠（出現の約1割）</h3>
+      <div class="mon-grid">
+        <div class="mon"><div class="emoji">🧝‍♀️</div><b>フリーレン</b><p>レア枠の筆頭</p></div>
+        <div class="mon"><div class="emoji">🔮</div><b>フェルン</b><p>レア枠</p></div>
+        <div class="mon"><div class="emoji">⚔️</div><b>シュタルク</b><p>レア枠</p></div>
+        <div class="mon"><div class="emoji">🗡️</div><b>ヒンメル</b><p>レア枠</p></div>
+        <div class="mon"><div class="emoji">⛪</div><b>ハイター</b><p>レア枠</p></div>
+        <div class="mon"><div class="emoji">🛡️</div><b>ドラクエ風の勇者</b><p>レア枠</p></div>
+      </div>
+      <h3>環境イベント</h3>
+      <div class="table-wrap"><table>
+        <tr><th>イベント</th><th>内容</th></tr>
+        <tr><td>窓の外の巨人</td><td>窓の外を大きな影が通り過ぎる</td></tr>
+        <tr><td>窓から覗く村の子</td><td>笑顔で手を振る</td></tr>
+        <tr><td>モグラのトンネル</td><td>床下を掘って進む。掘った洞窟は時間で坑口側から崩れて埋まり、最後はゴブリンが踏み固める。左右どちらからでも発生</td></tr>
+        <tr><td>壁の修復</td><td>穴が開くイベントのあと、ゴブリンが修復する。因果が繋がった演出。右側でも発生</td></tr>
+        <tr><td>炎の小鬼</td><td>暗転が明けた直後に現れ、松明に火を点ける</td></tr>
+      </table></div>
+    </section>
+
+    <!-- 13 -->
+    <section id="sky">
+      <h2>窓の空と天気</h2>
+      <p>窓の外の空の周期は<strong>モードで異なる</strong>：<strong>ノーマルは10分で一周、ハードは15分で一周</strong>する（いずれも各モードのクリア時間に合わせた周期）。夜 → 深夜 → 夜明け → 朝 → 昼 → 夕方 と進み、<strong>各モードのクリア時（ノーマル10:00到達／ハード15:00到達）と同時に夜へ戻って花火</strong>が上がるお祝い演出になっている。クリアまで耐え切れば、どちらのモードでも花火は必ず見られる。</p>
+      <div class="sky" aria-label="空のサイクル">
+        <div class="s-night">夜<small>0:00〜（共通）</small></div>
+        <div class="s-deep">深夜<small>ノーマル 約1:40〜 ／ ハード 約2:30〜・最も暗い</small></div>
+        <div class="s-dawn">夜明け<small>ノーマル 約3:20〜 ／ ハード 約5:00〜</small></div>
+        <div class="s-morning">朝<small>ノーマル 約5:00〜 ／ ハード 約7:30〜</small></div>
+        <div class="s-noon">昼<small>ノーマル 約6:40〜 ／ ハード 約10:00〜</small></div>
+        <div class="s-dusk">夕方<small>ノーマル 約8:20〜 ／ ハード 約12:30〜</small></div>
+        <div class="s-night2">夜<small>ノーマル 10:00 ／ ハード 15:00 クリアと同時 → 🎆花火</small></div>
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th>要素</th><th>仕様</th></tr>
+        <tr><td>空のサイクル</td><td>夜 → 深夜 → 夜明け → 朝 → 昼 → 夕方 → 夜。<b>ノーマルは10分で一周</b>（各区間 約1分40秒）／<b>ハードは15分で一周</b>（各区間 約2分30秒）。周期は各モードのクリア時間と一致する</td></tr>
+        <tr><td>天気</td><td>晴れ／曇り／雨 が <b>5分ごと</b>に切り替え（両モード共通）。ノーマルは 0:00／5:00 の2ブロック＋クリア、ハードは 0:00／5:00／10:00 の3ブロック</td></tr>
+        <tr><td>一周の節目・花火</td><td><b>各モードのクリア時</b>に夜へ戻り、花火でお祝い：<b>ノーマルは10:00到達時、ハードは15:00到達時</b></td></tr>
+        <tr><td>窓の見た目</td><td>石枠＋十字桟</td></tr>
+      </table></div>
+      <p class="small">実戦メモ：空の1周とランの長さがモードごとに一致している（ノーマル：1周10分＝クリア10:00／ハード：1周15分＝クリア15:00）ため、クリアしたランではどちらのモードでも夕方 → 夜の戻りと花火までを一続きで見られる。途中でゲームオーバーになった場合は、その時点の空で終了する。</p>
+    </section>
+
+    <!-- 14 -->
+    <section id="calibration">
+      <h2>タイミング補正</h2>
+      <p>端末ごとに音と表示のズレがある。設定の「補正」から自分の端末に合わせて調整すると判定が安定する。例：あるスマホでは −52ms が最適だった。<strong>補正値は端末・ブラウザごとに保存され、次回起動時に自動で読み込まれる</strong>ため、毎回測り直す必要はない。再測定すると新しい値で上書き保存される。保存済みのときはスタート画面と補正ボタンに「保存済み」と表示される。</p>
+    </section>
+
+    <a class="toc-top" href="#top">↑ ページ先頭へ戻る</a>
+  </main>
+</div>
+
+<footer>パリィゲーム攻略まとめ — 本ページの数値はゲーム本体の確定仕様に基づく。パターン表記：ピ＝1発／◯＝休み、各スロットのパリィ・回避は別抽選。</footer>
+
+<script>
+var P4 = [
+ {p:"ピ◯ピ◯",u:"30秒"},{p:"ピピピ◯",u:"30秒"},{p:"ピピピピ",u:"105秒"},{p:"◯ピピ◯",u:"105秒"},
+ {p:"◯◯ピピ",u:"105秒"},{p:"ピピ◯ピ",u:"120秒"},{p:"◯ピピピ",u:"120秒"},{p:"◯ピ◯ピ",u:"120秒"},
+ {p:"ピ◯ピピ",u:"150秒"},{p:"ピ◯◯ピ",u:"150秒"},{p:"ピピ◯◯",u:"150秒"}
+];
+var P8 = [
+ {p:"◯ピピピ◯ピピピ",u:"120秒"},{p:"ピピピ◯ピピピ◯",u:"150秒"},{p:"ピ◯ピ◯ピ◯ピ◯",u:"150秒"},{p:"◯ピ◯ピ◯ピ◯ピ",u:"150秒"},{p:"ピピピピピピピピ",u:"150秒"},
+ {p:"ピピ◯◯ピピ◯◯",u:"165秒"},{p:"ピ◯ピピピ◯ピピ",u:"165秒"},{p:"◯ピピ◯◯ピピ◯",u:"165秒"},{p:"◯◯ピピ◯◯ピピ",u:"165秒"},
+ {p:"ピピ◯ピピピ◯ピ",u:"180秒"},{p:"ピピピ◯◯ピピピ",u:"180秒"},
+ {p:"ピピ◯◯ピピピピ",u:"195秒"},{p:"ピピピ◯ピ◯ピピ",u:"195秒"},{p:"◯ピピ◯ピピピピ",u:"195秒"},{p:"ピピピピピピピ◯",u:"195秒"},
+ {p:"ピピピ◯ピピ◯◯",u:"210秒"},{p:"ピ◯ピ◯ピピピ◯",u:"210秒"},{p:"ピ◯ピピ◯ピピ◯",u:"210秒"},{p:"◯ピピピピピピピ",u:"210秒"},
+ {p:"ピピ◯◯ピ◯ピピ",u:"225秒"},{p:"ピ◯◯ピピ◯◯ピ",u:"225秒"},{p:"ピピピピピピ◯◯",u:"225秒"},{p:"ピピ◯ピ◯ピピ◯",u:"225秒"},
+ {p:"◯◯ピピ◯ピピピ",u:"240秒"},{p:"ピ◯ピピピ◯◯ピ",u:"240秒"},{p:"◯◯ピピピピピピ",u:"240秒"},{p:"ピピ◯◯◯ピピピ",u:"240秒"},{p:"ピ◯◯ピピピピ◯",u:"240秒"},
+ {p:"ピ◯ピ◯◯ピ◯ピ",u:"255秒"}
+];
+function renderPat(list, el){
+  el.innerHTML = list.map(function(it){
+    var dots = it.p.split("").map(function(c){ return '<span class="dot '+(c==="ピ"?"on":"rest")+'"></span>'; }).join("");
+    return '<div class="pat"><div class="p">'+it.p+'</div><div class="meta">解禁 '+it.u+'</div><div class="dots">'+dots+'</div></div>';
+  }).join("");
+}
+var g4=document.getElementById("grid4"), g8=document.getElementById("grid8");
+renderPat(P4,g4); renderPat(P8,g8);
+document.querySelectorAll(".filters button").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    document.querySelectorAll(".filters button").forEach(function(b){b.classList.remove("active")});
+    btn.classList.add("active");
+    var f=btn.getAttribute("data-f");
+    var heads = document.querySelectorAll("#patterns h3");
+    if(f==="all"){ g4.style.display=""; g8.style.display=""; heads[0].style.display=""; heads[1].style.display=""; }
+    if(f==="4"){ g4.style.display=""; g8.style.display="none"; heads[0].style.display=""; heads[1].style.display="none"; }
+    if(f==="8"){ g4.style.display="none"; g8.style.display=""; heads[0].style.display="none"; heads[1].style.display=""; }
+  });
+});
+// tempo bars
+var tempoN=[[0,450],[27,443],[54,436],[81,429],[108,422],[135,415],[162,408],[189,401],[216,394],[243,387],[270,380],[297,374],[324,368],[351,362],[378,356],[405,350],[432,344],[459,338],[486,332],[513,326],[540,320]];
+var tempoH=[[0,300],[40,293],[85,286],[125,279],[170,272],[210,265],[250,258],[295,251],[335,244],[380,237],[420,230],[460,224],[505,218],[545,212],[590,206],[630,200],[670,194],[715,188],[755,182],[800,176],[840,170]];
+function renderTempo(el, data, lo, hi, fastAt){
+  if(!el) return;
+  el.innerHTML = data.map(function(t){
+    var h = Math.round((t[1]-lo)/(hi-lo)*88)+10;
+    var label = Math.floor(t[0]/60)+":"+String(t[0]%60).padStart(2,"0");
+    return '<div class="tbar'+(t[1]<=fastAt?" fast":"")+'" style="height:'+h+'px" title="約'+label+" "+t[1]+'ms"><span>'+t[1]+'</span></div>';
+  }).join("");
+}
+renderTempo(document.getElementById("tempoBarsN"), tempoN, 300, 450, 340);
+renderTempo(document.getElementById("tempoBarsH"), tempoH, 150, 300, 200);
+</script>
+<section><h2>入力と一時停止</h2><p>連撃入力は最も近い着弾枠にのみ割り当てる。処理済み・入力済みの枠への余分な入力は隣の枠へ転送しない。同時押しも同じ枠内で両入力が必要。一時停止ではBGMを停止し、再開は3秒カウントダウン後。再開ボタンを再度押すと取消。</p></section><section><h2>音量・演出設定と熟達度</h2><p>BGMと効果音の音量を個別に調整できる。画面フラッシュと周辺暗色演出の抑制も可能（暗転攻撃自体は維持）。設定は端末内に保存する。リザルトの攻撃別ランクは10件以上で表示し、成功率95%以上S、85%以上A、70%以上B、それ未満C。10件未満は計測中。ランクはそのプレイの成績であり、累積ではない。</p></section></body>
+</html>
