@@ -861,9 +861,9 @@
             // metallic tick — the same CLANG family as the parry
             // cue, in preview form, so "metal = parry" is audible
             // from the telegraph on
-            noiseBurst(0.04, 0.10, 5400, 2.5);
-            tone(1568, 0.08, 'triangle', 0.10);
-            tone(3136, 0.09, 'square', 0.04);
+            noiseBurst(0.04, 0.14, 5400, 2.5);
+            tone(1568, 0.08, 'triangle', 0.14);
+            tone(3136, 0.09, 'square', 0.055);
             break;
           case 'warnRed':
             // dodge telegraph: a low heavy thud — the same WHUMP
@@ -871,6 +871,7 @@
             noiseBurst(0.16, 0.14, 380, 0.9);
             tone(130, 0.18, 'sine', 0.16, 48);
             tone(70, 0.18, 'triangle', 0.08, 42);
+            tone(390, 0.12, 'triangle', 0.045, 160);
             break;
           case 'parry':
             noiseBurst(0.07, 0.22, 4200, 3);
@@ -3088,7 +3089,7 @@
         // sequence hits keep their immediate warning (it coincides
         // with the previous hit's grid strike); singles play their
         // telegraph from the grid schedule instead (see warnAt)
-        if (inSeq && !atk.twin) sfx(type === 'red' ? 'warnRed' : type === 'both' ? 'warnBoth' : 'warnNormal');
+        if (inSeq && !atk.twin) { sfx(type === 'red' ? 'warnRed' : type === 'both' ? 'warnBoth' : 'warnNormal'); duckBgmAt(gNow, true); }
         // a red single in the dark gets its own sound sign, so it
         // can be told from a normal single by sound alone
         if (!inSeq && dark && type === 'red' && !rhythmSingle) atk.warnSfx = 'warnDarkRed';
@@ -5530,18 +5531,18 @@
               var rcGuard = 0;
               while (twinCues.length && rcGuard++ < 8) {
                 var rc0 = twinCues[0];
-                if (actx && rc0.at - gNow <= 130) { sfxAt(rc0.sfx, rc0.at); duckBgmAt(rc0.at); twinCues.shift(); }
-                else if (gNow >= rc0.at) { sfx(rc0.sfx); duckBgmAt(gNow); twinCues.shift(); }
+                if (actx && rc0.at - gNow <= 130) { sfxAt(rc0.sfx, rc0.at); duckBgmAt(rc0.at, true); twinCues.shift(); }
+                else if (gNow >= rc0.at) { sfx(rc0.sfx); duckBgmAt(gNow, true); twinCues.shift(); }
                 else break;
               }
             }
             if (atk && !atk.warnPlayed && atk.warnAt != null) {
               if (!atk.warnSched && actx && atk.warnAt - gNow <= 130) {
                 atk.warnSched = true; atk.warnPlayed = true;
-                if (atk.warnSfx) { sfxAt(warnSfxFor(atk.warnSfx, atk.dark), atk.warnAt); duckBgmAt(atk.warnAt); }
+                if (atk.warnSfx) { sfxAt(warnSfxFor(atk.warnSfx, atk.dark), atk.warnAt); duckBgmAt(atk.warnAt, true); }
               } else if (gNow >= atk.warnAt) {
                 atk.warnPlayed = true;
-                if (atk.warnSfx) { sfx(warnSfxFor(atk.warnSfx, atk.dark)); duckBgmAt(gNow); }
+                if (atk.warnSfx) { sfx(warnSfxFor(atk.warnSfx, atk.dark)); duckBgmAt(gNow, true); }
               }
             }
             // rhythm single: ticks on the BGM beat grid through the
