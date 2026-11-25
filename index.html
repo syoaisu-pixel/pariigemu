@@ -737,7 +737,11 @@
 
       // when set, tone()/noiseBurst() place their start on this
       // absolute audio-clock time instead of "now" (see sfxAt)
-      var sfxAtTime = null;
+      var sfxAtTime = null, sfxGridTime = null;
+      function cueHalfBeat(n) {
+        var t = sfxGridTime === null ? gNow : sfxGridTime;
+        return (timeAtPhase(phaseAt(t) + n * 0.5) - t) / 1000;
+      }
       var audioResumePending = false, audioWaitSince = null;
       function audio() {
         if (!actx) {
@@ -912,12 +916,12 @@
             tone(70, 0.24, 'triangle', 0.10, 40);
             break;
           case 'penalty': tone(300, 0.16, 'triangle', 0.10, 175); break;
-          case 'darkRhythm': tone(659, 0.07, 'sine', 0.10); tone(659, 0.07, 'sine', 0.10, 0, 0.19); break; // rhythm single: two-note count-in (visible screen only)
+          case 'darkRhythm': tone(659, 0.07, 'sine', 0.10); tone(659, 0.07, 'sine', 0.10, 0, cueHalfBeat(1)); break; // rhythm single: two-note count-in (visible screen only)
           case 'darkRhythmMore':
             // chain count-in (round 1 of a repeating ultimate):
             // the usual two notes plus a RISING third — the
             // barrage will continue past the first strike
-            tone(659, 0.07, 'sine', 0.10); tone(659, 0.07, 'sine', 0.10, 0, 0.19); tone(880, 0.10, 'sine', 0.11, 0, 0.38);
+            tone(659, 0.07, 'sine', 0.10); tone(659, 0.07, 'sine', 0.10, 0, cueHalfBeat(1)); tone(880, 0.10, 'sine', 0.11, 0, cueHalfBeat(2));
             break;
           case 'tick':
             // rhythm-attack beat tick: plain but CLEARLY audible —
@@ -1201,7 +1205,8 @@
       function sfxAt(name, gTime) {
         var ac = actx; if (!ac) return;
         sfxAtTime = ac.currentTime + Math.max(0, (gTime - gNow) / 1000);
-        try { sfx(name); } finally { sfxAtTime = null; }
+        sfxGridTime = Math.max(gTime, gNow);
+        try { sfx(name); } finally { sfxAtTime = null; sfxGridTime = null; }
       }
 
       /* ================= BGM (synth loop, beat-synced) =================
