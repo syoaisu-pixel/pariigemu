@@ -885,6 +885,7 @@
       }
       function sfx(name) {
         if (!soundOn) return;
+        if (name === 'combo' && darkAudioActive()) return;
         if (STAGE_SFX[name] && darkAudioActive()) {
           if (name === 'speedup' && !pendingStageJingle) {
             pendingStageJingle = true;
@@ -994,7 +995,7 @@
             // modest volume, with none of the bright sine shimmer
             // of the lit 'tick', so it can never mask or be
             // mistaken for the strike sound it counts down to
-            tone(587, 0.05, 'sine', 0.13);
+            tone(587, 0.05, 'sine', 0.19);
             tone(294, 0.045, 'triangle', 0.05);
             noiseBurst(0.02, 0.03, 900, 1.1);
             break;
@@ -1003,7 +1004,7 @@
             // as 'tickDark', one step up and a touch louder, so
             // the landing beat stays unmistakable in the dark
             // without stepping on the strike's own impact sound
-            tone(784, 0.06, 'sine', 0.17);
+            tone(784, 0.06, 'sine', 0.23);
             tone(392, 0.05, 'triangle', 0.06);
             noiseBurst(0.02, 0.04, 900, 1.1);
             break;
@@ -1041,6 +1042,7 @@
             tone(3136, 0.08, 'square', 0.06);
             break;
           case 'popoDodge':
+            tone(390, 0.065, 'triangle', 0.12, 180);
             noiseBurst(0.03, 0.10, 5200, 2);
             noiseBurst(0.12, 0.24, 400, 0.9);
             tone(140, 0.13, 'sine', 0.24, 55);
@@ -1117,6 +1119,7 @@
             noiseBurst(0.26, 0.28, 320, 0.9);
             tone(130, 0.26, 'sine', 0.30, 40);
             tone(58, 0.26, 'square', 0.15, 32);
+            tone(390, 0.10, 'triangle', 0.11, 170);
             break;
           case 'cueBothDark':
             // the bell rings bigger and the drum hits deeper —
@@ -1146,6 +1149,8 @@
             tone(1976, 0.11, 'square', 0.045, 0, 0.04);
             break;
           case 'warnDarkRed':
+            tone(390, 0.09, 'triangle', 0.10, 170);
+            tone(390, 0.09, 'triangle', 0.10, 170, 0.24);
             // dark red single: a dedicated sound sign — a DOUBLE
             // low whump, much heavier and longer than anything a
             // parry-able attack makes in the dark, so a red attack
@@ -1420,8 +1425,8 @@
         // groove steps further aside for all three than for a
         // plain tick
         var darkDuck = !!(darkPhase || (atk && atk.dark));
-        var duckTo = darkDuck ? 0.15 : deep ? 0.22 : 0.40;
-        var duckHold = darkDuck ? 0.22 : deep ? 0.18 : 0.13;
+        var duckTo = darkDuck ? 0.09 : deep ? 0.18 : 0.40;
+        var duckHold = darkDuck ? 0.26 : deep ? 0.18 : 0.13;
         try {
           var g = out.gain;
           // NOTE: this used to hard-reset the gain to 1 at every
@@ -5589,7 +5594,7 @@
             if (atk && atk.ultimateCueTimes) {
               while (atk.ultimateCueIndex < 3) {
                 var ui = atk.ultimateCueIndex, ut = atk.ultimateCueTimes[ui];
-                if (ut > gNow + 130) break;
+                if (ut > gNow + 130 || !actx) break;
                 sfxAt(ui === 2 && atk.warnSfx === 'darkRhythmMore' ? 'ultimatePopHigh' : 'ultimatePop', ut);
                 duckBgmAt(ut, true); atk.ultimateCueIndex++;
               }
