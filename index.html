@@ -582,7 +582,7 @@
       @keyframes resultReveal { from { opacity:0; transform:translateY(12px) scale(.96); } to { opacity:1; transform:none; } }
       @media(prefers-reduced-motion:reduce){#panelOver *{animation:none!important;}}
       #landPause,#landHint { display:none; }
-      @media (orientation:landscape) and (max-height:540px) and (any-pointer:coarse) {
+      @media (orientation:landscape) and (any-pointer:coarse) {
         body.land-playing { overflow:hidden; touch-action:none; }
         body.land-playing .wrap { display:flex; flex-direction:column; align-items:center; height:100vh; height:100dvh; padding:4px 8px; gap:4px; }
         body.land-playing .hud { width:100%; flex:none; }
@@ -955,7 +955,7 @@
           case 'ultimatePopHigh': tone(1175,0.075,'triangle',0.28); tone(2350,0.045,'sine',0.12); break;
           case 'darkRhythm':
             for(var ci=0;ci<3;ci++){var cd=ci?cueHalfBeat(ci):0; tone(880,0.065,'triangle',0.28,0,cd); tone(1760,0.045,'sine',0.12,0,cd);}
-            break; // rhythm single: two-note count-in (visible screen only)
+            break; // legacy three-note count-in fallback
           case 'darkRhythmMore':
             // chain count-in (round 1 of a repeating ultimate):
             // the usual two notes plus a RISING third — the
@@ -5625,7 +5625,9 @@
                 var ttick = atk.tickTimes[atk.tickIdx];
                 var isPopo = atk.chainRound > 1 && atk.tickIdx < atk.tickTimes.length - 1; // a follow-up round's three position-adjustment warps
                 var tickSfx = atk.tickIdx === atk.tickTimes.length - 1 ? (atk.strikeTickSfx || 'tickHit') : isPopo ? popoSfxFor(atk.type) : 'tick'; // the last tick IS the strike beat: accented (chain follow-ups use their per-round strike tick). The po-po-po triple is voiced in THIS round's type timbre — metallic pop = parry, low pop = dodge, bell+drum = both — so a mid-chain type switch is announced by ear before the strike (and in a blackout this signal is kept, never softened into the generic dark tick). All three pops use the SAME voice (the plain cue sound only, no accented third-pop variant), so the triple reads as one "po-po-po"; the whole triple still ducks the BGM deep — the pops were fusing with the BGM kick and the previous strike's judgment decay on some rounds
-                if (atk.dark && !isPopo) tickSfx = tickSfx === 'tick' ? 'tickDark' : 'tickHitDark'; // dark voice: soft knock, kept clear of the strike sound
+                if (atk.dark && !isPopo) tickSfx = tickSfx === 'tick' ? 'tickDark' : 'tickHitDark';
+                // First-round countdown identifies the required action before the strike, even without visuals.
+                if (atk.chainRound <= 1 && atk.tickIdx === 0 && atk.tickTimes.length > 1) tickSfx = popoSfxFor(atk.type); // dark voice: soft knock, kept clear of the strike sound
                 // the BGM ducks at EVERY tick by the same amount,
                 // so each of the five ticks stands equally clear
                 // of the music (see the 'tick' voice note) — the
@@ -5635,8 +5637,8 @@
                 // beat, inside its judgment sound's decay), and at
                 // the shallow duck they kept fusing with the kick
                 // and the strike cluster on some rounds
-                if (actx && ttick - gNow <= 130) { sfxAt(tickSfx, ttick); duckBgmAt(ttick, isPopo); atk.tickIdx++; }
-                else if (ttick <= Math.min(gNow, atk.strikeAt)) { sfx(tickSfx); duckBgmAt(gNow, isPopo); atk.tickIdx++; }
+                if (actx && ttick - gNow <= 130) { sfxAt(tickSfx, ttick); duckBgmAt(ttick, isPopo || atk.tickIdx === 0); atk.tickIdx++; }
+                else if (ttick <= Math.min(gNow, atk.strikeAt)) { sfx(tickSfx); duckBgmAt(gNow, isPopo || atk.tickIdx === 0); atk.tickIdx++; }
                 else break;
               }
             }
@@ -6035,7 +6037,7 @@
       // counted twice by two overlapping listeners
       window.addEventListener('pointerdown', function () { if (calib) calibTap(); });
 
-      var landscapeTouch = window.matchMedia('(orientation:landscape) and (max-height:540px) and (any-pointer:coarse)');
+      var landscapeTouch = window.matchMedia('(orientation:landscape) and (any-pointer:coarse)');
       document.getElementById('landPause').addEventListener('click', function(){if(MODE==='playing')togglePause();});
       window.addEventListener('pointerdown', function(e){
         if(MODE!=='playing' || !landscapeTouch.matches || e.pointerType==='mouse' || e.target.closest('button,input,select,a,summary,.panel')) return;
