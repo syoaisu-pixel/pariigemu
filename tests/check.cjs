@@ -1,0 +1,11 @@
+const fs=require('node:fs'),assert=require('node:assert/strict');
+const html=fs.readFileSync('index.html','utf8'),guide=fs.readFileSync('guide.html','utf8');
+const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
+assert(scripts.length>0);
+for(const [,s] of scripts)new Function(s);
+const markup=html.replace(/<script(?:\s[^>]*)?>[\s\S]*?<\/script>/gi,'');
+const ids=[...markup.matchAll(/\bid=["']([^"']+)["']/g)].map(m=>m[1]);
+assert.equal(new Set(ids).size,ids.length,'duplicate IDs');
+for(const [,s] of scripts)for(const m of s.matchAll(/getElementById\(\s*['"]([^'"]+)['"]\s*\)/g))assert(ids.includes(m[1]),'missing ID: '+m[1]);
+for(const token of ['3分','ノーマル','ハード','チュートリアル'])assert(guide.includes(token),'guide missing '+token);
+console.log('PASS: scripts='+scripts.length+', IDs='+ids.length+', guide modes');
