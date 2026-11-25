@@ -950,7 +950,7 @@
             tone(70, 0.24, 'triangle', 0.10, 40);
             break;
           case 'penalty': tone(300, 0.16, 'triangle', 0.10, 175); break;
-          case 'darkRhythm': tone(659, 0.07, 'sine', 0.10); tone(659, 0.07, 'sine', 0.10, 0, cueHalfBeat(1)); break; // rhythm single: two-note count-in (visible screen only)
+          case 'darkRhythm': tone(659, 0.07, 'sine', 0.10); tone(659, 0.07, 'sine', 0.10, 0, cueHalfBeat(1)); tone(659, 0.07, 'sine', 0.10, 0, cueHalfBeat(2)); break; // rhythm single: two-note count-in (visible screen only)
           case 'darkRhythmMore':
             // chain count-in (round 1 of a repeating ultimate):
             // the usual two notes plus a RISING third — the
