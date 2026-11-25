@@ -738,11 +738,16 @@
       // when set, tone()/noiseBurst() place their start on this
       // absolute audio-clock time instead of "now" (see sfxAt)
       var sfxAtTime = null;
+      var audioResumePending = false, audioWaitSince = null;
       function audio() {
         if (!actx) {
           try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { actx = null; }
         }
-        if (actx && actx.state === 'suspended') { actx.resume(); }
+        if (actx && (actx.state === 'suspended' || actx.state === 'interrupted') && !audioResumePending) {
+          audioResumePending = true;
+          try { Promise.resolve(actx.resume()).then(function(){audioResumePending=false;},function(){audioResumePending=false;}); }
+          catch(e){audioResumePending=false;}
+        }
         return actx;
       }
       function tone(freq, dur, type, vol, slideTo, delay) {
@@ -1496,7 +1501,7 @@
       }
       function updateBGM() {
         if (!bgmOn || !soundOn || MODE !== 'playing') return;
-        var ac = audio(); if (!ac) return;
+        var ac = audio(); if (!ac || ac.state !== 'running') return;
         // after a toggle / stall, drop every step whose grid point
         // is already in the past: resume at the first step at or
         // after the current phase. A past step must never be fired
@@ -3709,6 +3714,8 @@
           panelPause.hidden = false;
         } else if (MODE === 'paused') {
           if (resumeTimer !== null) { cancelResume(); return; }
+          if (soundOn) audio(); // resume within the user's gesture
+          audioWaitSince = null;
           var left=3, button=document.getElementById('btnResume');
           function count() {
             if (MODE !== 'paused' || document.hidden || (panelCalib && !panelCalib.hidden)) {cancelResume();return;}
@@ -5475,6 +5482,13 @@
           // idle motion (visPhase) and the particle fx pause.
           if (hitstop > 0) hitstop -= dt;
           if (MODE === 'playing') {
+            if (soundOn && actx && actx.state !== 'running') {
+              audio();
+              if (audioWaitSince === null) audioWaitSince = ts;
+              if (ts - audioWaitSince >= 500) { togglePause(); audioWaitSince = null; }
+              render(dt); return; // do not consume attack cues while audio is unavailable
+            }
+            audioWaitSince = null;
             gNow += gdt;
             // ONE CLOCK per session: elapsedMs runs from the
             // moment the session starts — playStartClock is never
