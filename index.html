@@ -843,7 +843,7 @@
       var noiseBufCache = {}, noiseBufCount = 0;
       function noiseBufferFor(ac, dur, powShape) {
         var len = Math.max(1, Math.floor(ac.sampleRate * dur));
-        var key = len + (powShape ? 'p' : 'l');
+        var key = ac.sampleRate + ':' + len + (powShape ? 'p' : 'l');
         var buf = noiseBufCache[key];
         if (!buf) {
           buf = ac.createBuffer(1, len, ac.sampleRate);
