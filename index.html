@@ -950,6 +950,8 @@
             tone(70, 0.24, 'triangle', 0.10, 40);
             break;
           case 'penalty': tone(300, 0.16, 'triangle', 0.10, 175); break;
+          case 'ultimatePop': tone(880,0.075,'triangle',0.28); tone(1760,0.045,'sine',0.12); break;
+          case 'ultimatePopHigh': tone(1175,0.075,'triangle',0.28); tone(2350,0.045,'sine',0.12); break;
           case 'darkRhythm':
             for(var ci=0;ci<3;ci++){var cd=ci?cueHalfBeat(ci):0; tone(880,0.065,'triangle',0.28,0,cd); tone(1760,0.045,'sine',0.12,0,cd);}
             break; // rhythm single: two-note count-in (visible screen only)
@@ -3102,6 +3104,8 @@
           struckFx: false,
           warnAt: warnAt,
           warnSfx: warnSfx,
+          ultimateCueTimes: (warnSfx === 'darkRhythm' || warnSfx === 'darkRhythmMore') ? [warnAt, timeAtPhase(strikePhase - 9.5), timeAtPhase(strikePhase - 9)] : null,
+          ultimateCueIndex: 0,
           warnPlayed: inSeq,
           warnSched: false,
           chargeStart: chargeStartAt,
@@ -5581,6 +5585,15 @@
                 else if (gNow >= rc0.at) { sfx(rc0.sfx); duckBgmAt(gNow, true); twinCues.shift(); }
                 else break;
               }
+            }
+            if (atk && atk.ultimateCueTimes) {
+              while (atk.ultimateCueIndex < 3) {
+                var ui = atk.ultimateCueIndex, ut = atk.ultimateCueTimes[ui];
+                if (ut > gNow + 130) break;
+                sfxAt(ui === 2 && atk.warnSfx === 'darkRhythmMore' ? 'ultimatePopHigh' : 'ultimatePop', ut);
+                duckBgmAt(ut, true); atk.ultimateCueIndex++;
+              }
+              atk.warnPlayed = true;
             }
             if (atk && !atk.warnPlayed && atk.warnAt != null) {
               if (!atk.warnSched && actx && atk.warnAt - gNow <= 130) {
