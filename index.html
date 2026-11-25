@@ -794,7 +794,7 @@
       }
       var audioResumePending = false, audioWaitSince = null;
       function audio() {
-        if (actx && actx.state==='closed'){replayCueAudio=replayCueAudio.concat(pendingCueAudio.filter(function(x){return x.time>gNow;}));pendingCueAudio=[];actx=null;effectBus=null;musicBus=null;bgmBus=null;audioResumePending=false;}
+        if (actx && actx.state==='closed'){replayCueAudio=replayCueAudio.concat(pendingCueAudio.filter(function(x){return x.time>gNow;}));pendingCueAudio=[];actx=null;effectBus=null;musicBus=null;bgmBus=null;bgmStepIdx=Math.ceil(beatPhase*2-1e-6);audioResumePending=false;}
         if (!actx) {
           try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { actx = null; }
         }
@@ -1494,6 +1494,7 @@
         bgmStepIdx = 0; beatPhase = 0;
       }
       function bgmStop() {
+        bgmStepIdx = Math.ceil(beatPhase * 2 - 1e-6); // reschedule future steps cut by pause
         bgmCutBus(); // cut pending notes now; scheduling is also gated on MODE in updateBGM
       }
       function bgmToneAt(at, freq, dur, type, vol, slideTo) {
