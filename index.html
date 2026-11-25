@@ -652,7 +652,7 @@
             <span class="mode-label">モード</span>
             <button class="mode-btn sel" id="btnModeTutorial" type="button" aria-pressed="true">チュートリアル</button>
             <button class="mode-btn" id="btnModeNormal" type="button" aria-pressed="false">ノーマル</button>
-            <button class="mode-btn hard" id="btnModeHard" type="button" aria-pressed="false">ハード</button>
+            <button class="mode-btn hard" id="btnModeHard" type="button" aria-pressed="false">ハード</button><button class="mode-btn" id="btnModeShort" type="button" aria-pressed="false">3分</button>
             <button class="ghost-btn" id="btnCalibOpen" type="button" style="margin-top:0;">タイミング調整</button>
           </div>
           <div id="practiceOptions" style="margin:8px 0;color:inherit" hidden>
@@ -1574,6 +1574,7 @@
           bgmToneAt(at, bst >= 5 ? arp * 2 : arp, 0.15, 'sine', 0.016);
         }
         if (bst >= 4 && step % 8 === 4) bgmToneAt(at, 164.81, 0.4, 'triangle', 0.013);
+        if(!introActive && clearMs()-elapsedMs<=60000 && step%8===0) bgmToneAt(at,root*4,0.22,'triangle',0.012);
         if (bst >= 6) {
           var lead2 = BGM_LEAD2[step % 32];
           if (lead2) bgmToneAt(at, lead2, 0.18, 'square', 0.010);
@@ -1696,9 +1697,9 @@
       var floaters = [];
       var gaugeHealUntil = 0;       // confidence gauge heal glow, until this clock time
       var overAt = 0;
-      var finaleNotice=0, finaleTimer=null, finaleResultTimer=null;
+      var finalSpecial=false, finaleNotice=0, finaleTimer=null, finaleResultTimer=null;
       function finaleBanner(msg){var e=document.getElementById('finaleBanner');e.textContent=msg;e.hidden=!msg;}
-      function resetFinale(){clearTimeout(finaleTimer);clearTimeout(finaleResultTimer);finaleTimer=null;finaleResultTimer=null;finaleNotice=0;finaleBanner('');}
+      function resetFinale(){clearTimeout(finaleTimer);clearTimeout(finaleResultTimer);finaleTimer=null;finaleResultTimer=null;finalSpecial=false;finaleNotice=0;finaleBanner('');}
       // blackout light transitions (visual only): flicker timestamps
       // and whether the torches are currently lit
       var prevBlackout = false, flickInAt = -99999, flickOutAt = -99999, torchLit = true;
@@ -1710,12 +1711,12 @@
       // games, so their records never compete with each other.
       // The results screen reads and updates the best of the
       // mode the finished run was played in (see fillResults)
-      var bests = { normal: { score: 0, time: 0 }, hard: { score: 0, time: 0 } };
+      var bests = { normal: { score: 0, time: 0 }, hard: { score: 0, time: 0 }, short: {score:0,time:0} };
       var BEST_KEY = 'pariigemu.bests.v1';
       function loadBests() {
         try {
           var data = JSON.parse(localStorage.getItem(BEST_KEY) || '{}');
-          ['normal', 'hard'].forEach(function (mode) {
+          ['normal', 'hard','short'].forEach(function (mode) {
             ['score', 'time'].forEach(function (key) {
               var v = data && data[mode] && data[mode][key];
               if (typeof v === 'number' && isFinite(v) && v >= 0) bests[mode][key] = Math.max(bests[mode][key], v);
@@ -1728,8 +1729,8 @@
         try { localStorage.setItem(BEST_KEY, JSON.stringify(bests)); } catch (e) {}
       }
       loadBests();
-      function bestFor(choice) { return choice === 'hard' ? bests.hard : bests.normal; }
-      function clearMs() { return gameMode === 'normal' ? 600000 : 900000; } // clear goal: normal 10:00, hard 15:00 (see gameClear)
+      function bestFor(choice) { return bests[choice] || bests.normal; }
+      function clearMs() { return playChoice === 'short' ? 180000 : gameMode === 'normal' ? 600000 : 900000; } // clear goal: normal 10:00, hard 15:00 (see gameClear)
       var runCleared = false;       // the current/last run ended by reaching the clear goal (10:00 normal / 15:00 hard)
       // per-category success tallies for the results breakdown.
       // The buckets overlap on purpose: "both" and "dark" cut
@@ -2384,8 +2385,8 @@
           titleEl.textContent = 'ゲームオーバー';
           titleEl.className = 'dot';
         }
-        document.getElementById('overSub').textContent = cleared ? (runChoice === 'hard' ? '15:00到達 — 15分間生き残った！' : '10:00到達 — 10分間生き残った！') : '';
-        document.getElementById('resMode').textContent = runChoice === 'hard' ? 'ハード' : runChoice === 'tutorial' ? 'ノーマル（チュートリアル）' : 'ノーマル';
+        document.getElementById('overSub').textContent = cleared ? (runChoice === 'short' ? '3:00到達 — 短期決戦クリア！' : runChoice === 'hard' ? '15:00到達 — 15分間生き残った！' : '10:00到達 — 10分間生き残った！') : '';
+        document.getElementById('resMode').textContent = runChoice === 'short' ? '3分' : runChoice === 'hard' ? 'ハード' : runChoice === 'tutorial' ? 'ノーマル（チュートリアル）' : 'ノーマル';
         var scoreNode=document.getElementById('finalScore'), targetScore=score;
         scoreNode.textContent=targetScore.toLocaleString();
         if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
@@ -2588,7 +2589,7 @@
       function scheduleWindup() {
         var d = difficulty();
         var ik = introKind; introKind = null; // guided-intro forcing, consumed here
-        if (ik) introPending = { kind: ik, ok: true }; // judged when this attack resolves (see resolveAttack)
+        if (ik && introActive) introPending = { kind: ik, ok: true }; // judged when this attack resolves (see resolveAttack)
         var chainForce = forceChainNext; forceChainNext = false; // rhythm chain continuation, consumed here
         if (ik) chainForce = false; // the intro never borrows a chain round
         var darkForce = forceDarkNext; forceDarkNext = false; // dark tutorial pass continuation, consumed here
@@ -3997,7 +3998,7 @@
       // the sky cycle is one full loop per clear goal: 900s in
       // hard, 600s in normal — the key times (authored for the
       // 900s cycle) are scaled by the cycle ratio
-      function skyCycleSec() { return gameMode === 'normal' ? 600 : 900; }
+      function skyCycleSec() { return clearMs()/1000; }
       // the sky drifts over minutes, so its colour is memoized
       // at half-second resolution (perf): the window redraws
       // every frame, and re-parsing hex colours 60 times a
@@ -5882,6 +5883,7 @@
                 // two-beat grid. Ordinary attacks still wait out
                 // the rest bar (a sequence in progress is never
                 // cut either — see the branch above).
+                if(!finalSpecial && !darkPhase && clearMs()-elapsedMs<=10000){finalSpecial=true;introKind='chain';finaleBanner('最終必殺・魔王の連撃');}
                 scheduleWindup();
               }
             }
@@ -6068,6 +6070,7 @@
       var btnModeTutorial = document.getElementById('btnModeTutorial');
       var btnModeNormal = document.getElementById('btnModeNormal');
       var btnModeHard = document.getElementById('btnModeHard');
+      var btnModeShort=document.getElementById('btnModeShort');
       var modeInfo = document.getElementById('modeInfo');
       function updateModeUI() {
         document.getElementById('practiceOptions').hidden = playChoice !== 'tutorial';
@@ -6079,7 +6082,8 @@
         btnModeHard.classList.toggle('sel', playChoice === 'hard');
         btnModeHard.classList.toggle('hard', playChoice === 'hard');
         btnModeHard.setAttribute('aria-pressed', playChoice === 'hard' ? 'true' : 'false');
-        modeInfo.textContent = playChoice === 'hard'
+        btnModeShort.classList.toggle('sel',playChoice==='short');btnModeShort.setAttribute('aria-pressed',String(playChoice==='short'));
+        modeInfo.textContent = playChoice==='short' ? '3分：180秒の短期決戦。記録は独立。' : playChoice === 'hard'
           ? 'ハード：15:00生き残ればクリア。'
           : playChoice === 'tutorial'
             ? 'チュートリアル：全8種目を順に練習できます。'
@@ -6088,6 +6092,7 @@
       bindStart(btnModeTutorial, function () { setPlayChoice('tutorial'); updateModeUI(); try { btnModeTutorial.blur(); } catch (e) {} });
       bindStart(btnModeNormal, function () { setPlayChoice('normal'); updateModeUI(); try { btnModeNormal.blur(); } catch (e) {} });
       bindStart(btnModeHard, function () { setPlayChoice('hard'); updateModeUI(); try { btnModeHard.blur(); } catch (e) {} });
+      bindStart(btnModeShort,function(){setPlayChoice('short');updateModeUI();btnModeShort.blur();});
       updateModeUI();
       bindStart(document.getElementById('btnCalibOpen'), openCalib);
       bindStart(document.getElementById('btnCalibMini'), openCalib);
@@ -6149,7 +6154,7 @@
       var menuFocusIdx = -1, menuKey = '';
       function menuItems() {
         if (panelCalib && !panelCalib.hidden) return { key: 'calib', items: [document.getElementById('btnCalibStart'), document.getElementById('btnCalibClose')], def: 0 };
-        if (MODE === 'title') return { key: 'title', items: [btnModeTutorial, btnModeNormal, btnModeHard, document.getElementById('btnStart'), document.getElementById('btnCalibOpen')], def: 3 };
+        if (MODE === 'title') return { key: 'title', items: [btnModeTutorial, btnModeNormal, btnModeHard, btnModeShort, document.getElementById('btnStart'), document.getElementById('btnCalibOpen')], def: 4 };
         if (MODE === 'tutdone') return { key: 'tutdone', items: [document.getElementById('btnTutToNormal'), document.getElementById('btnTutToTitle')], def: 0 };
         if (MODE === 'over' && !panelOver.hidden) return { key: 'over', items: [document.getElementById('btnRetry'), document.getElementById('btnOverTitle')], def: 0 };
         if (MODE === 'paused') return { key: 'pause', items: [document.getElementById('btnResume'), document.getElementById('btnQuitTitle')], def: 0 };
@@ -6192,7 +6197,7 @@
         var it = m.items[menuFocusIdx];
         if (it === btnModeTutorial) { setPlayChoice('tutorial'); updateModeUI(); }
         else if (it === btnModeNormal) { setPlayChoice('normal'); updateModeUI(); }
-        else if (it === btnModeHard) { setPlayChoice('hard'); updateModeUI(); }
+        else if (it === btnModeHard) { setPlayChoice('hard'); updateModeUI(); } else if(it===btnModeShort){setPlayChoice('short');updateModeUI();}
       }
       function menuActivate() {
         var m = menuItems();
