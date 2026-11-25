@@ -602,7 +602,7 @@
       #panelTutDone[hidden] { display:none !important; }
     #finaleBanner { position:fixed; z-index:90; top:18%; left:50%; transform:translateX(-50%); padding:12px 24px; background:#101620e8; border:1px solid #e8c878; color:#ffe6a1; text-align:center; font-size:clamp(16px,4vw,32px); pointer-events:none; white-space:nowrap; }
 #finaleBanner[hidden]{display:none!important;}
-#tutorialRead {position:absolute;z-index:80;left:5%;right:5%;top:12%;padding:10px;background:#101620f5;border:1px solid #8fe8ff;color:#fff;text-align:center;font-size:clamp(13px,2.8vw,20px);line-height:1.5;pointer-events:none;white-space:pre-line;}
+#tutorialRead {position:absolute;z-index:80;left:5%;right:5%;bottom:5%;padding:clamp(5px,1.5vw,12px);background:linear-gradient(110deg,#211829f5,#100e19f5);border:1px solid #9276a6;border-left:4px solid #c2a0df;color:#fff;text-align:left;font-size:clamp(11px,2.7vw,18px);line-height:1.35;pointer-events:none;box-shadow:0 3px 12px #0008;}#tutorialRead .demon-name{color:#e0b5ff;font-weight:bold;font-size:.85em;display:flex;justify-content:space-between}#tutorialRead .demon-help{color:#b8d9e8;font-size:.8em;margin-top:4px}
 #tutorialRead[hidden]{display:none!important;}
 #resultRank[data-rank="S"]{color:#ffe28a;text-shadow:0 0 24px #e8a631}#resultRank[data-rank="A"]{color:#a5f4ff}#resultRank[data-rank="B"]{color:#a9e6ac}#resultRank[data-rank="C"]{color:#c6cbd6}#resultGraph>div{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:5px 0}#resultGraph progress{width:100%;accent-color:#79c8d9}#runHistory{max-height:120px;overflow:auto;font-size:12px}#achievements{font-size:12px;line-height:1.6}
 </style>
@@ -629,7 +629,7 @@
       <div id="stage" tabindex="0" aria-label="ゲーム画面">
         <canvas id="cv" width="480" height="270"></canvas>
         <div id="flash"></div>
-        <div id="tutorialRead" hidden></div>
+        <div id="tutorialRead" hidden><div class="demon-name">魔王 <span id="demonStep"></span></div><div id="demonSpeech"></div><div class="demon-help" id="demonHelp"></div></div>
         <div id="finaleBanner" hidden aria-live="polite"></div>
         <div id="vignette"></div>
         <div id="judge" class="dot"></div>
@@ -702,7 +702,7 @@
         <div class="panel" id="panelTutDone" hidden>
           <div class="tut-kicker">TRAINING COMPLETE</div>
           <h2 class="dot">訓練完了</h2>
-          <p class="sub">全種目クリア。<br />魔王との決戦へ進もう。</p>
+          <p class="sub">魔王「面白い……では、ここからが本番だ。」<br />全種目クリア。</p>
           <button class="big-btn" id="btnTutToNormal" type="button">▶ ノーマルでチャレンジ</button>
           <button class="ghost-btn" id="btnTutToTitle" type="button">タイトルに戻る</button>
         </div>
@@ -1878,7 +1878,7 @@
       function introCurrentList() {
         return introSteps;
       }
-      var introReadUntil=0;
+      var demonLines=["我に挑むか。まずはこの剣を弾いてみせよ！","この赤き一撃は防げぬ。身をかわしてみせよ！","剣と魔力、同時に放つぞ。両方で受けてみよ！","一撃で終わると思ったか？ 二つの音を覚えよ。","我が連撃の律動を、そのまま返してみせよ！","我が必殺の律動を聞け。最後の拍が決着だ！","まだ終わらぬぞ。次の三つの合図を聞き逃すな！","光を奪ってやろう。目に頼るな、音を聞け。"];var introReadUntil=0,introReadStart=0,introSpeech='';function updateDemonSpeech(){if(introReadUntil){document.getElementById('demonSpeech').textContent=introSpeech.slice(0,Math.floor((gNow-introReadStart)/32)+1);}}
       function hideIntroRead(){introReadUntil=0;document.getElementById('tutorialRead').hidden=true;}
       function launchIntroStep() {
         var list = introCurrentList();
@@ -1886,9 +1886,9 @@
         var st = list[introIdx];
         if(practiceIndex<0 && !introReadUntil){
           var el=document.getElementById('tutorialRead');
-          el.textContent='訓練 '+(introIdx+1)+' / '+list.length+'\n'+st.txt;
+          introSpeech=(introAttempts?'どうした？ もう一度だ。':'')+demonLines[introIdx];introReadStart=gNow;document.getElementById('demonStep').textContent=(introIdx+1)+' / '+list.length;document.getElementById('demonHelp').textContent=st.txt;updateDemonSpeech();document.getElementById('demonSpeech').textContent=introSpeech.slice(0,1);
           el.hidden=false;
-          introReadUntil=gNow+Math.max(4500,st.txt.length*150);
+          introReadUntil=gNow+Math.max(5000,introSpeech.length*32+st.txt.length*120+2000);
           introNextAt=introReadUntil;
           return;
         }
@@ -1896,7 +1896,7 @@
         introKind = st.kind;
         var cols = { normal: '#8fe8ff', red: '#ff6a58', rhythm: '#8fe8ff', chain: '#ffb35c', seq2: '#8fe8ff', both: '#ffd76a', twin: '#e8ecf5', dark: '#cfd2ff' };
         var label = st.txt;
-        floaters.push({ x: 80, y: 18, txt: label, color: cols[st.kind] || '#8fe8ff', life: 1, dur: gameMode === 'normal' ? 5800 : 4000 });
+        if(practiceIndex>=0) floaters.push({ x: 80, y: 18, txt: label, color: cols[st.kind] || '#8fe8ff', life: 1, dur: gameMode === 'normal' ? 5800 : 4000 });
         scheduleWindup();
       }
       // breathing room before the next intro item: the EARLY
@@ -1927,7 +1927,7 @@
           }
         } else {
           introAttempts++;
-          floaters.push({ x: 80, y: 27, txt: 'もう一度！クリアで次へ進むよ', color: '#f2efe6', life: 1, dur: 1400 });
+          floaters.push({ x: 80, y: 27, txt: '魔王：どうした？ もう一度だ。', color: '#f2efe6', life: 1, dur: 1400 });
         }
         // tutorial damage is practice only: the gauge refills
         // after EVERY intro step, so HP drained while learning a
@@ -5630,7 +5630,7 @@
             }
             audioWaitSince = null;
             if(replayCueAudio.length){var replay=replayCueAudio;replayCueAudio=[];replay.forEach(function(x){sfxAt(x.name,x.time);duckBgmAt(x.time,true);});}
-            gNow += gdt;
+            gNow += gdt;updateDemonSpeech();
             pendingCueAudio=pendingCueAudio.filter(function(x){return x.time>gNow;});
             // ONE CLOCK per session: elapsedMs runs from the
             // moment the session starts — playStartClock is never
@@ -5653,8 +5653,8 @@
             // during the tutorial itself
             if (!introActive && !tutSession) {
               var remain=clearMs()-elapsedMs;
-              if(remain<=60000 && finaleNotice===0){finaleNotice=1;finaleBanner('最終局面 — 世界の鼓動を守れ');}
-              if(remain<=10000 && finaleNotice<2){finaleNotice=2;finaleBanner('決着まであとわずか');}
+              if(remain<=60000 && finaleNotice===0){finaleNotice=1;finaleBanner('魔王「ここからが真の決戦だ！」');}
+              if(remain<=10000 && finaleNotice<2){finaleNotice=2;finaleBanner('魔王「我が最後の一撃を受けよ！」');}
               if(finaleNotice===1 && remain<57000 || finaleNotice===2 && remain<7000) finaleBanner('');
               if(remain<=0 && finalSpecial && !atk && !cue && !forceChainNext && !forceDarkNext && seqRemaining()<=0){elapsedMs=clearMs();gameClear();render(dt);return;}
             }
