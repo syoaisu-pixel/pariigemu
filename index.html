@@ -602,6 +602,8 @@
       #panelTutDone[hidden] { display:none !important; }
     #finaleBanner { position:fixed; z-index:90; top:18%; left:50%; transform:translateX(-50%); padding:12px 24px; background:#101620e8; border:1px solid #e8c878; color:#ffe6a1; text-align:center; font-size:clamp(16px,4vw,32px); pointer-events:none; white-space:nowrap; }
 #finaleBanner[hidden]{display:none!important;}
+#tutorialRead {position:absolute;z-index:80;left:5%;right:5%;top:12%;padding:10px;background:#101620f5;border:1px solid #8fe8ff;color:#fff;text-align:center;font-size:clamp(13px,2.8vw,20px);line-height:1.5;pointer-events:none;white-space:pre-line;}
+#tutorialRead[hidden]{display:none!important;}
 </style>
   </head>
   <body>
@@ -626,6 +628,7 @@
       <div id="stage" tabindex="0" aria-label="ゲーム画面">
         <canvas id="cv" width="480" height="270"></canvas>
         <div id="flash"></div>
+        <div id="tutorialRead" hidden></div>
         <div id="finaleBanner" hidden aria-live="polite"></div>
         <div id="vignette"></div>
         <div id="judge" class="dot"></div>
@@ -1868,10 +1871,21 @@
       function introCurrentList() {
         return introSteps;
       }
+      var introReadUntil=0;
+      function hideIntroRead(){introReadUntil=0;document.getElementById('tutorialRead').hidden=true;}
       function launchIntroStep() {
         var list = introCurrentList();
         if (introIdx >= list.length) { advanceIntroPhase(); return; }
         var st = list[introIdx];
+        if(practiceIndex<0 && !introReadUntil){
+          var el=document.getElementById('tutorialRead');
+          el.textContent='訓練 '+(introIdx+1)+' / '+list.length+'\n'+st.txt;
+          el.hidden=false;
+          introReadUntil=gNow+Math.max(4500,st.txt.length*150);
+          introNextAt=introReadUntil;
+          return;
+        }
+        hideIntroRead();
         introKind = st.kind;
         var cols = { normal: '#8fe8ff', red: '#ff6a58', rhythm: '#8fe8ff', chain: '#ffb35c', seq2: '#8fe8ff', both: '#ffd76a', twin: '#e8ecf5', dark: '#cfd2ff' };
         var label = st.txt;
@@ -2183,6 +2197,7 @@
       }
 
       function resetGame() {
+        hideIntroRead();
         resetFinale();
         confidence = 100; score = 0; combo = 0; maxCombo = 0;
         parryCount = 0; perfectCount = 0; dodgeCount = 0; greatCount = 0; greatDodgeCount = 0; totalFaced = 0;
@@ -2284,6 +2299,7 @@
       // (startNormalFromTutorial below), or the player goes
       // back to the title screen instead (tutDoneToTitle)
       function tutorialComplete() {
+        hideIntroRead();
         introActive = false; introDone = true; introAttempts = 0;
         tutSession = false;
         if (confidence !== 100) { confidence = 100; updateHUD(); } // same refill as finalizeIntro
@@ -3840,6 +3856,7 @@
         bgmStop(); // cut any BGM notes already scheduled, so nothing rings out while hidden (the bus is rebuilt on the grid when play resumes)
       }
       function returnToTitle() {
+        hideIntroRead();
         resetFinale();
         cancelResume();
         MODE = 'title';
