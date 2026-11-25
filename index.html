@@ -921,9 +921,9 @@
           case 'perfect':
             noiseBurst(0.09, 0.26, 5200, 3);
             tone(1976, 0.14, 'triangle', 0.11);
-            tone(2637, 0.16, 'square', 0.06, 0, 0.03);
-            tone(3520, 0.22, 'square', 0.055, 0, 0.06);
-            tone(4186, 0.20, 'sine', 0.04, 0, 0.09);
+            tone(2637, 0.10, 'triangle', 0.065, 0, 0.02);
+            tone(3520, 0.09, 'triangle', 0.035, 0, 0.035);
+            tone(4186, 0.09, 'sine', 0.018, 0, 0.045);
             break;
           case 'dodge': noiseBurst(0.16, 0.15, 750, 1.1); tone(420, 0.13, 'sine', 0.04, 170); break;
           case 'perfectDodge':
@@ -951,8 +951,8 @@
             tone(70, 0.24, 'triangle', 0.10, 40);
             break;
           case 'penalty': tone(300, 0.16, 'triangle', 0.10, 175); break;
-          case 'ultimatePop': tone(880,0.075,'triangle',0.28); tone(1760,0.045,'sine',0.12); break;
-          case 'ultimatePopHigh': tone(1175,0.075,'triangle',0.28); tone(2350,0.045,'sine',0.12); break;
+          case 'ultimatePop': tone(880,0.065,'triangle',0.24); tone(1760,0.035,'sine',0.075); tone(440,0.055,'sine',0.09); break;
+          case 'ultimatePopHigh': tone(1175,0.065,'triangle',0.24); tone(2350,0.035,'sine',0.075); tone(587.5,0.055,'sine',0.09); break;
           case 'darkRhythm':
             for(var ci=0;ci<3;ci++){var cd=ci?cueHalfBeat(ci):0; tone(880,0.065,'triangle',0.28,0,cd); tone(1760,0.045,'sine',0.12,0,cd);}
             break; // legacy three-note count-in fallback
@@ -1067,7 +1067,7 @@
             noiseBurst(0.05, 0.20, 5400, 2.5);
             tone(1568, 0.13, 'triangle', 0.13);
             tone(2217, 0.11, 'square', 0.055);
-            tone(3136, 0.15, 'square', 0.05);
+            tone(3136, 0.10, 'triangle', 0.05);
             tone(4186, 0.10, 'sine', 0.055);
             tone(5588, 0.07, 'sine', 0.035);
             break;
@@ -1113,7 +1113,7 @@
             tone(2217, 0.13, 'square', 0.08);
             tone(3136, 0.17, 'square', 0.075);
             tone(4186, 0.12, 'sine', 0.08);
-            tone(6272, 0.09, 'sine', 0.05);
+            tone(6272, 0.05, 'sine', 0.022);
             break;
           case 'cueDodgeDark':
             noiseBurst(0.26, 0.28, 320, 0.9);
@@ -1425,8 +1425,8 @@
         // groove steps further aside for all three than for a
         // plain tick
         var darkDuck = !!(darkPhase || (atk && atk.dark));
-        var duckTo = darkDuck ? 0.09 : deep ? 0.18 : 0.40;
-        var duckHold = darkDuck ? 0.26 : deep ? 0.18 : 0.13;
+        var duckTo = darkDuck ? 0.14 : deep ? 0.38 : 0.62;
+        var duckHold = Math.min(darkDuck ? 0.22 : deep ? 0.12 : 0.075, beatMsAt(gTime) / 1000 * 0.45);
         try {
           var g = out.gain;
           // NOTE: this used to hard-reset the gain to 1 at every
@@ -1442,7 +1442,7 @@
           g.cancelScheduledValues(at);
           g.linearRampToValueAtTime(duckTo, at + 0.015);
           g.setValueAtTime(duckTo, at + duckHold);
-          g.linearRampToValueAtTime(1, at + duckHold + 0.21);
+          g.linearRampToValueAtTime(1, at + duckHold + Math.min(0.16, beatMsAt(gTime) / 1000 * 0.45));
         } catch (e) {}
       }
       function bgmBusNode() {
