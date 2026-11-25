@@ -794,7 +794,7 @@
       }
       var audioResumePending = false, audioWaitSince = null;
       function audio() {
-        if (actx && actx.state==='closed'){actx=null;effectBus=null;musicBus=null;bgmBus=null;}
+        if (actx && actx.state==='closed'){replayCueAudio=replayCueAudio.concat(pendingCueAudio.filter(function(x){return x.time>gNow;}));pendingCueAudio=[];actx=null;effectBus=null;musicBus=null;bgmBus=null;audioResumePending=false;}
         if (!actx) {
           try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { actx = null; }
         }
@@ -2367,7 +2367,7 @@
       // game over are scored and recorded exactly the same way —
       // only the heading, the sub-line and the jingle differ
       function readAchievements(){try{var a=JSON.parse(localStorage.getItem('pariigemu.achievements.v1')||'{}');return {win:a.win===true,master:a.master===true,combo:a.combo===true};}catch(e){return {win:false,master:false,combo:false};}}
-      function readHistory(){try{var h=JSON.parse(localStorage.getItem('pariigemu.history.v1')||'[]');return Array.isArray(h)?h.filter(function(x){return x&&['normal','hard','short'].includes(x.mode)&&Number.isFinite(x.score)&&Number.isFinite(x.time)&&Number.isFinite(x.accuracy)&&Number.isFinite(x.combo);}).slice(0,50):[];}catch(e){return [];}}
+      function readHistory(){try{var h=JSON.parse(localStorage.getItem('pariigemu.history.v1')||'[]');return Array.isArray(h)?h.filter(function(x){return x&&['normal','hard','short'].includes(x.mode)&&Number.isFinite(x.score)&&Number.isFinite(x.time)&&Number.isFinite(x.accuracy)&&Number.isFinite(x.combo)&&x.score>=0&&x.time>=0&&x.accuracy>=0&&x.accuracy<=1&&x.combo>=0&&typeof x.clear==='boolean';}).slice(0,50):[];}catch(e){return [];}}
       function renderHistory(){var h=readHistory(),el=document.getElementById('runHistory'),ach=document.getElementById('achievements');el.replaceChildren();h.slice(0,10).forEach(function(x){var p=document.createElement('div');p.textContent=({normal:'ノーマル',hard:'ハード',short:'3分'})[x.mode]+' / '+fmtTime(x.time)+' / '+x.score.toLocaleString()+' / '+Math.round(x.accuracy*100)+'%'+(x.clear?' CLEAR':'');el.append(p);});if(!h.length)el.textContent='記録なし';ach.textContent=['初勝利：'+((readAchievements().win||h.some(x=>x.clear))?'達成':'未達成'),'達人：'+((readAchievements().master||h.some(x=>x.accuracy>=.95&&x.clear))?'達成':'未達成'),'50コンボ：'+((readAchievements().combo||h.some(x=>x.combo>=50))?'達成':'未達成')].join(' / ');}
       function fillResults(cleared) {
         var titleEl = document.getElementById('overTitle');
@@ -3879,6 +3879,7 @@
         bgmStop(); // cut any BGM notes already scheduled, so nothing rings out while hidden (the bus is rebuilt on the grid when play resumes)
       }
       function returnToTitle() {
+        pendingCueAudio=[];replayCueAudio=[];
         hideIntroRead();
         resetFinale();
         cancelResume();
@@ -5627,9 +5628,9 @@
               render(dt); return; // do not consume attack cues while audio is unavailable
             }
             audioWaitSince = null;
+            if(replayCueAudio.length){var replay=replayCueAudio;replayCueAudio=[];replay.forEach(function(x){sfxAt(x.name,x.time);duckBgmAt(x.time,true);});}
             gNow += gdt;
             pendingCueAudio=pendingCueAudio.filter(function(x){return x.time>gNow;});
-            if(replayCueAudio.length){var replay=replayCueAudio;replayCueAudio=[];replay.forEach(function(x){sfxAt(x.name,x.time);duckBgmAt(x.time,true);});}
             // ONE CLOCK per session: elapsedMs runs from the
             // moment the session starts — playStartClock is never
             // carried forward. The tutorial is its OWN session
