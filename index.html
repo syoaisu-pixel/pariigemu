@@ -818,6 +818,10 @@
         return (timeAtPhase(phaseAt(t) + n * 0.5) - t) / 1000;
       }
       var audioResumePending = false, audioWaitSince = null;
+      var audioClockCtx=null,audioClockValue=0,audioClockWall=0,audioFault=null;
+      function audioClockStalled(ts){if(!actx||actx!==audioClockCtx||actx.currentTime!==audioClockValue){audioClockCtx=actx;audioClockValue=actx?actx.currentTime:0;audioClockWall=ts;return false;}return ts-audioClockWall>750;}
+      function reportAudioFault(e){audioFault=String(e);}
+      function recoverAudioGraph(){var prev=actx;actx=null;effectBus=null;musicBus=null;bgmBus=null;bgmDuck=null;bgmDuckCtx=null;audioClockCtx=null;audioResumePending=false;audioFault=null;if(prev&&prev.close){try{Promise.resolve(prev.close()).catch(function(){});}catch(e){}}}
       function audio() {
         if (actx && actx.state==='closed'){replayCueAudio=replayCueAudio.concat(pendingCueAudio.filter(function(x){return x.time>gNow;}));pendingCueAudio=[];actx=null;effectBus=null;musicBus=null;bgmBus=null;bgmStepIdx=Math.ceil(beatPhase*2-1e-6);audioResumePending=false;}
         if (!actx) {
@@ -852,7 +856,7 @@
           o.connect(g); g.connect(volumeNode(ac,false));
           releaseAudioOnEnd(o, [g]);
           o.start(t0); o.stop(t0 + dur + 0.02);
-        } catch (e) {}
+        } catch (e) {reportAudioFault(e);}
       }
       // Shared noise-buffer cache (perf): noiseBurst / bgmNoiseAt /
       // bgmHatAt used to allocate a brand-new AudioBuffer and fill
@@ -892,7 +896,7 @@
           src.connect(f); f.connect(g); g.connect(volumeNode(ac,false));
           releaseAudioOnEnd(src, [f,g]);
           src.start(t0);
-        } catch (e) {}
+        } catch (e) {reportAudioFault(e);}
       }
       // Sound palette, split by role so simultaneous sounds never blur.
       // Attack-type signatures are told by TIMBRE CATEGORY, not by
@@ -1535,7 +1539,7 @@
           o.connect(g); g.connect(out);
           releaseAudioOnEnd(o, [g]);
           o.start(at); o.stop(at + dur + 0.02);
-        } catch (e) {}
+        } catch (e) {reportAudioFault(e);}
       }
       function bgmHatAt(at, vol) {
         var ac = actx; if (!ac) return;
@@ -1547,7 +1551,7 @@
           src.connect(f); f.connect(g); g.connect(out);
           releaseAudioOnEnd(src, [f,g]);
           src.start(at);
-        } catch (e) {}
+        } catch (e) {reportAudioFault(e);}
       }
       // generic filtered noise through the shared BGM bus (hats,
       // claps): the buffer itself carries a decay envelope
@@ -1562,7 +1566,7 @@
           src.connect(f); f.connect(g); g.connect(out);
           releaseAudioOnEnd(src, [f,g]);
           src.start(at);
-        } catch (e) {}
+        } catch (e) {reportAudioFault(e);}
       }
       var BGM_BASS = [55, 55, 43.65, 43.65, 65.41, 65.41, 49, 49]; // per beat: Am Am F F C C G G
       var BGM_LEAD = { 4: 440, 12: 523.25, 20: 659.25, 28: 587.33 }; // sparse, one note per 32 half-steps cycle position
@@ -3877,7 +3881,7 @@
         } else if (MODE === 'paused') {
           if (resumeTimer !== null) { cancelResume(); return; }
           if (soundOn) audio(); // resume within the user's gesture
-          audioWaitSince = null;
+          audioWaitSince = null;audioClockCtx=null;
           var left=3, button=document.getElementById('btnResume');
           function count() {
             if (MODE !== 'paused' || document.hidden || (panelCalib && !panelCalib.hidden)) {cancelResume();return;}
@@ -5285,7 +5289,7 @@
           // it at the strike — the same slot lighting twice,
           // which read as a double-fire. Now the bright flash
           // (state 2) happens exactly once: in the strike moment
-          if (seqStrikes && seqStrikes[i] != null && Math.abs(gNow - seqStrikes[i]) <= 110) return 2;
+          // During execution use only the thin next-hit ring; reserve bright flashes for cue playback.
           return 3;
         }
         return 0;
@@ -5362,7 +5366,7 @@
               : seqView.types[hi] === 'red' ? '#ff5a48' : seqView.types[hi] === 'both' ? '#ffd76a' : '#8fe8ff';
             if (st === 2) RA(cx - 5, cy - 5, 10, 10, col, 0.5 * assist);
             ctx.save();
-            ctx.globalAlpha = (st === 0 ? 0.78 : st === 1 ? 0.92 : 1) * assist;
+            ctx.globalAlpha = (st === 0 ? 0.78 : st === 1 ? 0.42 : 1) * assist;
             ctx.fillStyle = col;
             ctx.beginPath();
             ctx.arc(cx * S, cy * S, (st === 2 ? 3.4 : 3) * S, 0, Math.PI * 2);
@@ -5649,6 +5653,7 @@
           // idle motion (visPhase) and the particle fx pause.
           if (hitstop > 0) hitstop -= dt;
           if (MODE === 'playing') {
+            if(soundOn && (audioFault || (actx && actx.state==='running' && audioClockStalled(ts)))){togglePause();recoverAudioGraph();document.getElementById('btnResume').textContent='音声を再接続して再開';render(dt);return;}
             if (soundOn && (!actx || actx.state !== 'running')) {
               audio();
               if (audioWaitSince === null) audioWaitSince = ts;
@@ -5852,15 +5857,16 @@
                 duckBgmAt(cue.beepTimes[cue.beepSchedIdx]);
                 cue.beepSchedIdx++;
               }
-              var nb = cue.lastBeeped + 1;
-              if (nb < cue.pattern.length && gNow >= cue.beepTimes[nb]) {
+              if(cue.lastBeeped===cue.pattern.length-1 && gNow>=cue.litUntil){nextAttackAt=cue.beepTimes[cue.lastBeeped];cue=null;}
+              var nb = cue ? cue.lastBeeped + 1 : 0;
+              while (cue && nb < cue.pattern.length && gNow >= cue.beepTimes[nb]) {
                 cue.lastBeeped = nb;
                 cue.litIdx = nb;
                 // the lit window is capped at ~80% of a slot: at
                 // fast tiers the slots shrink to ~110ms, and a flat
                 // 240ms glow outlived its own beep by two slots,
                 // which read as marks lighting twice / out of turn
-                cue.litUntil = gNow + Math.min(220, bgmBeatMs() * 0.42);
+                cue.litUntil = cue.beepTimes[nb] + Math.min(220, beatMsAt(cue.beepTimes[nb]) * 0.42);
                 if (nb >= cue.beepSchedIdx) {
                   sfx(cueSfxFor(cue.pattern[nb]));
                   duckBgmAt(gNow);
@@ -5868,8 +5874,9 @@
                 }
                 if (nb === cue.pattern.length - 1) {
                   nextAttackAt = cue.beepTimes[nb];
-                  cue = null;
+                  if(gNow>=cue.litUntil)cue = null;
                 }
+                nb++;
               }
             }
             // resolve once the late side of the (slot-capped)
