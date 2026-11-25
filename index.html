@@ -604,6 +604,7 @@
 #finaleBanner[hidden]{display:none!important;}
 #tutorialRead {position:absolute;z-index:80;left:5%;right:5%;top:12%;padding:10px;background:#101620f5;border:1px solid #8fe8ff;color:#fff;text-align:center;font-size:clamp(13px,2.8vw,20px);line-height:1.5;pointer-events:none;white-space:pre-line;}
 #tutorialRead[hidden]{display:none!important;}
+#resultRank[data-rank="S"]{color:#ffe28a;text-shadow:0 0 24px #e8a631}#resultRank[data-rank="A"]{color:#a5f4ff}#resultRank[data-rank="B"]{color:#a9e6ac}#resultRank[data-rank="C"]{color:#c6cbd6}#resultGraph>div{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:5px 0}#resultGraph progress{width:100%;accent-color:#79c8d9}#runHistory{max-height:120px;overflow:auto;font-size:12px}#achievements{font-size:12px;line-height:1.6}
 </style>
   </head>
   <body>
@@ -659,6 +660,7 @@
           <label>練習種目 <select id="practiceKind"><option value="-1">全8種目（通常）</option><option value="0">単発パリィ</option><option value="1">回避</option><option value="2">同時押し</option><option value="3">速い！</option><option value="4">連撃</option><option value="5">必殺</option><option value="6">チェーン</option><option value="7">暗転</option></select></label>
           <label>速度 <select id="practiceSpeed"><option value="600">低速 600ms</option><option value="450" selected>通常 450ms</option><option value="300">高速 300ms</option><option value="170">最高速 170ms</option></select></label>
           <p class="foot-hint">個別練習は無制限。終了はポーズからタイトルへ。</p></div>
+          <details><summary>実績・プレイ履歴</summary><div id="achievements"></div><div id="runHistory"></div></details>
           <p class="foot-hint" id="modeInfo">チュートリアル：全8種目を順に練習できます。</p>
           <p class="foot-hint" id="calibInfo">タイミング補正：0ms（「タイミング調整」で入力ズレを補正できます）</p>
           <p class="foot-hint"><a href="./guide.html" style="color:#8fe8ff;text-decoration:underline">攻略・操作ガイドを見る</a></p>
@@ -692,7 +694,7 @@
             <span class="rk">同時押し</span><span class="rv" id="bdBoth">—</span>
             <span class="rk">暗転時</span><span class="rv" id="bdDark">—</span>
           </div>
-          <p id="masteryReport" class="foot-hint"></p><p id="timingReport" class="foot-hint"></p>
+          <p id="masteryReport" class="foot-hint"></p><div id="resultGraph"></div><p id="timingReport" class="foot-hint"></p>
           </div></div><div class="result-actions"><button class="big-btn" id="btnRetry" type="button">▶ もう一度</button>
           <button class="ghost-btn" id="btnOverTitle" type="button">タイトルに戻る</button></div>
         </div>
@@ -2360,6 +2362,8 @@
       // shared results filling for both endings: a clear and a
       // game over are scored and recorded exactly the same way —
       // only the heading, the sub-line and the jingle differ
+      function readHistory(){try{var h=JSON.parse(localStorage.getItem('pariigemu.history.v1')||'[]');return Array.isArray(h)?h.filter(function(x){return x&&['normal','hard','short'].includes(x.mode)&&Number.isFinite(x.score)&&Number.isFinite(x.time)&&Number.isFinite(x.accuracy)&&Number.isFinite(x.combo);}).slice(0,50):[];}catch(e){return [];}}
+      function renderHistory(){var h=readHistory(),el=document.getElementById('runHistory'),ach=document.getElementById('achievements');el.replaceChildren();h.slice(0,10).forEach(function(x){var p=document.createElement('div');p.textContent=({normal:'ノーマル',hard:'ハード',short:'3分'})[x.mode]+' / '+fmtTime(x.time)+' / '+x.score.toLocaleString()+' / '+Math.round(x.accuracy*100)+'%'+(x.clear?' CLEAR':'');el.append(p);});if(!h.length)el.textContent='記録なし';ach.textContent=['初勝利：'+(h.some(x=>x.clear)?'達成':'未達成'),'達人：'+(h.some(x=>x.accuracy>=.95&&x.clear)?'達成':'未達成'),'50コンボ：'+(h.some(x=>x.combo>=50)?'達成':'未達成')].join(' / ');}
       function fillResults(cleared) {
         var titleEl = document.getElementById('overTitle');
         if (clearQTimer) { clearTimeout(clearQTimer); clearQTimer = null; }
@@ -2414,7 +2418,17 @@
         document.getElementById('timingReport').textContent = timingN ? '成功入力 '+timingN+'件｜平均偏差 '+(timingSum/timingN).toFixed(1)+'ms｜平均絶対誤差 '+(timingAbs/timingN).toFixed(1)+'ms｜標準偏差 '+Math.sqrt(Math.max(0,timingSq/timingN-Math.pow(timingSum/timingN,2))).toFixed(1)+'ms' : '成功入力の計測データなし';
         panelOver.dataset.clear = String(cleared);
         var accuracy = totalFaced ? (parryCount + dodgeCount) / totalFaced : 0;
-        document.getElementById('resultRank').textContent = !totalFaced ? '—' : accuracy >= .95 ? 'S' : accuracy >= .85 ? 'A' : accuracy >= .70 ? 'B' : 'C';
+        var rankNode=document.getElementById('resultRank');
+        rankNode.textContent=!totalFaced?'—':accuracy>=.95?'S':accuracy>=.85?'A':accuracy>=.70?'B':'C';
+        rankNode.dataset.rank=rankNode.textContent;
+        var history=readHistory();
+        history.unshift({date:new Date().toISOString(),mode:runChoice,score:score,time:elapsedMs,accuracy:accuracy,combo:maxCombo,clear:cleared});
+        history=history.slice(0,50);
+        try{localStorage.setItem('pariigemu.history.v1',JSON.stringify(history));}catch(e){}
+        var graph=document.getElementById('resultGraph');graph.replaceChildren();
+        var names={single:'単発',seq:'連撃',rhythm:'必殺',both:'同時押し',dark:'暗転'};
+        Object.keys(names).forEach(function(k){var c=catStats[k],row=document.createElement('div'),label=document.createElement('span'),bar=document.createElement('progress');label.textContent=names[k]+' '+(c.n?Math.round(c.ok/c.n*100)+'%':'未計測');bar.max=100;bar.value=c.n?c.ok/c.n*100:0;row.append(label,bar);graph.append(row);});
+        renderHistory();
         panelOver.querySelector('.result-scroll').scrollTop = 0;
         fillBreakdown();
         var categories={single:'単発',seq:'連撃',rhythm:'リズム',both:'同時押し',dark:'暗転'};
@@ -6073,6 +6087,7 @@
       var btnModeShort=document.getElementById('btnModeShort');
       var modeInfo = document.getElementById('modeInfo');
       function updateModeUI() {
+        renderHistory();
         document.getElementById('practiceOptions').hidden = playChoice !== 'tutorial';
         btnModeTutorial.classList.toggle('sel', playChoice === 'tutorial');
         btnModeTutorial.classList.toggle('tut', playChoice === 'tutorial');
