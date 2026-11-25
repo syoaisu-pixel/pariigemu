@@ -925,24 +925,28 @@
             tone(3520, 0.09, 'triangle', 0.035, 0, 0.035);
             tone(4186, 0.09, 'sine', 0.018, 0, 0.045);
             break;
-          case 'dodge': noiseBurst(0.16, 0.15, 750, 1.1); tone(420, 0.13, 'sine', 0.04, 170); break;
+          case 'dodge':
+            noiseBurst(0.095, 0.16, 1250, 1.1);
+            tone(330, 0.085, 'triangle', 0.075, 165);
+            tone(660, 0.045, 'sine', 0.045, 440);
+            break;
           case 'perfectDodge':
             // perfect dodge: the whump family pushed bright — a
             // deep wind-cut with a high shimmer on top, so a
             // perfect dodge SOUNDS a full tier above a plain one
             // (dodge grades used to have no resolve sound at all:
             // perfect, great and plain were indistinguishable)
-            noiseBurst(0.18, 0.20, 700, 1.1);
-            tone(392, 0.16, 'sine', 0.06, 156);
-            tone(1568, 0.14, 'sine', 0.045, 0, 0.03);
-            tone(2093, 0.18, 'sine', 0.035, 0, 0.07);
+            noiseBurst(0.105, 0.21, 1550, 1.2);
+            tone(330, 0.09, 'triangle', 0.10, 165);
+            tone(660, 0.065, 'sine', 0.075, 0, 0.012);
+            tone(880, 0.075, 'triangle', 0.055, 0, 0.035);
             break;
           case 'greatDodge':
             // great (グッド) dodge: same family, one step dimmer
             // than the perfect voice
-            noiseBurst(0.17, 0.17, 720, 1.1);
-            tone(415, 0.14, 'sine', 0.05, 165);
-            tone(1175, 0.11, 'sine', 0.035, 0, 0.03);
+            noiseBurst(0.10, 0.18, 1400, 1.1);
+            tone(330, 0.09, 'triangle', 0.085, 165);
+            tone(660, 0.065, 'sine', 0.06, 0, 0.015);
             break;
           case 'whiff': noiseBurst(0.06, 0.06, 1700, 1); break;
           case 'hit':
