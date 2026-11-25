@@ -10,3 +10,4 @@ jobs:
           node-version: '22'
       - run: node tests/check.cjs
       - run: node tests/runtime.cjs
+      - run: node tests/audio.cjs
