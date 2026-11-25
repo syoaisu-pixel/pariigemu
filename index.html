@@ -605,6 +605,19 @@
 #tutorialRead {position:absolute;z-index:80;left:5%;right:5%;bottom:5%;padding:clamp(5px,1.5vw,12px);background:linear-gradient(110deg,#211829f5,#100e19f5);border:1px solid #9276a6;border-left:4px solid #c2a0df;color:#fff;text-align:left;font-size:clamp(11px,2.7vw,18px);line-height:1.35;pointer-events:none;box-shadow:0 3px 12px #0008;}#tutorialRead .demon-name{color:#e0b5ff;font-weight:bold;font-size:.85em;display:flex;justify-content:space-between}#tutorialRead .demon-help{color:#b8d9e8;font-size:.8em;margin-top:4px}
 #tutorialRead[hidden]{display:none!important;}
 #resultRank[data-rank="S"]{color:#ffe28a;text-shadow:0 0 24px #e8a631}#resultRank[data-rank="A"]{color:#a5f4ff}#resultRank[data-rank="B"]{color:#a9e6ac}#resultRank[data-rank="C"]{color:#c6cbd6}#resultGraph>div{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:5px 0}#resultGraph progress{width:100%;accent-color:#79c8d9}#runHistory{max-height:120px;overflow:auto;font-size:12px}#achievements{font-size:12px;line-height:1.6}
+
+/* Demon dialogue: theatrical pixel-RPG presentation */
+#tutorialRead{isolation:isolate;left:3%;right:3%;bottom:4%;padding:clamp(6px,1.5vw,14px) clamp(10px,2vw,22px);border:2px solid #d6a0ff;border-left:5px solid #ffbd66;background:linear-gradient(105deg,#421d52f7 0%,#1a102bf7 48%,#100d1ef7 100%);box-shadow:0 0 0 3px #150c20,0 0 22px #b44dff80,inset 0 0 24px #a54bfa25;display:grid;grid-template-columns:clamp(36px,10vw,80px) 1fr;column-gap:12px;align-items:center;animation:demonEnter .28s ease-out both}
+#tutorialRead .demon-portrait{grid-row:1 / 4;width:100%;aspect-ratio:1;background:radial-gradient(#6b326b,#1b1026);border:1px solid #c18af1;box-shadow:0 0 14px #b44dff70;image-rendering:pixelated}
+#tutorialRead .demon-name{color:#ffcf8a;letter-spacing:.15em;text-shadow:0 0 8px #ff963d;font-size:.85em}
+#demonSpeech{min-height:2.7em;font-weight:bold;text-shadow:0 2px 0 #000;line-height:1.35}
+#tutorialRead .demon-help{border-top:1px solid #a978bd66;padding-top:3px;color:#a9eaff}
+#tutorialRead .demon-name span{color:#cbb1dd;letter-spacing:0}
+@keyframes demonEnter{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
+#finaleBanner:not([hidden]){background:linear-gradient(90deg,transparent,#39122eea 18%,#39122eea 82%,transparent);border-block:1px solid #f5b35e;color:#ffe2a0;text-shadow:0 2px #3b1020,0 0 15px #ff8844;box-shadow:0 0 24px #d34c4c55;animation:demonEnter .3s ease-out both;pointer-events:none}
+#panelTutDone:not([hidden]){background:radial-gradient(ellipse at 50% 35%,#533068,#1b142d 55%,#090c16 90%)}
+#panelTutDone h2{text-shadow:0 3px #3a183f,0 0 25px #f2a4ff}
+@media(prefers-reduced-motion:reduce){#tutorialRead,#finaleBanner:not([hidden]){animation:none}}
 </style>
   </head>
   <body>
@@ -629,7 +642,7 @@
       <div id="stage" tabindex="0" aria-label="ゲーム画面">
         <canvas id="cv" width="480" height="270"></canvas>
         <div id="flash"></div>
-        <div id="tutorialRead" hidden><div class="demon-name">魔王 <span id="demonStep"></span></div><div id="demonSpeech"></div><div class="demon-help" id="demonHelp"></div></div>
+        <div id="tutorialRead" hidden><svg class="demon-portrait" viewBox="0 0 32 32" aria-hidden="true" shape-rendering="crispEdges"><path fill="#332c3d" d="M4 2h4v7h4V6h8v3h4V2h4v13h2v12h-6v5H8v-5H2V15h2z"/><path fill="#69556f" d="M8 10h16v5h3v10H5V15h3z"/><path fill="#17101f" d="M9 15h14v9H9z"/><path fill="#ff4b4b" d="M10 16h5v2h-5zm7 0h5v2h-5z"/><path fill="#ffdb9c" d="M11 16h2v1h-2zm8 0h2v1h-2z"/><path fill="#a02722" d="M7 25h18v7H7z"/><path fill="#d5b77b" d="M14 26h4v4h-4z"/></svg><div class="demon-name">魔王 <span id="demonStep"></span></div><div id="demonSpeech"></div><div class="demon-help" id="demonHelp"></div></div>
         <div id="finaleBanner" hidden aria-live="polite"></div>
         <div id="vignette"></div>
         <div id="judge" class="dot"></div>
