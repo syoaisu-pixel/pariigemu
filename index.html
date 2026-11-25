@@ -2362,8 +2362,9 @@
       // shared results filling for both endings: a clear and a
       // game over are scored and recorded exactly the same way —
       // only the heading, the sub-line and the jingle differ
+      function readAchievements(){try{var a=JSON.parse(localStorage.getItem('pariigemu.achievements.v1')||'{}');return {win:a.win===true,master:a.master===true,combo:a.combo===true};}catch(e){return {win:false,master:false,combo:false};}}
       function readHistory(){try{var h=JSON.parse(localStorage.getItem('pariigemu.history.v1')||'[]');return Array.isArray(h)?h.filter(function(x){return x&&['normal','hard','short'].includes(x.mode)&&Number.isFinite(x.score)&&Number.isFinite(x.time)&&Number.isFinite(x.accuracy)&&Number.isFinite(x.combo);}).slice(0,50):[];}catch(e){return [];}}
-      function renderHistory(){var h=readHistory(),el=document.getElementById('runHistory'),ach=document.getElementById('achievements');el.replaceChildren();h.slice(0,10).forEach(function(x){var p=document.createElement('div');p.textContent=({normal:'ノーマル',hard:'ハード',short:'3分'})[x.mode]+' / '+fmtTime(x.time)+' / '+x.score.toLocaleString()+' / '+Math.round(x.accuracy*100)+'%'+(x.clear?' CLEAR':'');el.append(p);});if(!h.length)el.textContent='記録なし';ach.textContent=['初勝利：'+(h.some(x=>x.clear)?'達成':'未達成'),'達人：'+(h.some(x=>x.accuracy>=.95&&x.clear)?'達成':'未達成'),'50コンボ：'+(h.some(x=>x.combo>=50)?'達成':'未達成')].join(' / ');}
+      function renderHistory(){var h=readHistory(),el=document.getElementById('runHistory'),ach=document.getElementById('achievements');el.replaceChildren();h.slice(0,10).forEach(function(x){var p=document.createElement('div');p.textContent=({normal:'ノーマル',hard:'ハード',short:'3分'})[x.mode]+' / '+fmtTime(x.time)+' / '+x.score.toLocaleString()+' / '+Math.round(x.accuracy*100)+'%'+(x.clear?' CLEAR':'');el.append(p);});if(!h.length)el.textContent='記録なし';ach.textContent=['初勝利：'+((readAchievements().win||h.some(x=>x.clear))?'達成':'未達成'),'達人：'+((readAchievements().master||h.some(x=>x.accuracy>=.95&&x.clear))?'達成':'未達成'),'50コンボ：'+((readAchievements().combo||h.some(x=>x.combo>=50))?'達成':'未達成')].join(' / ');}
       function fillResults(cleared) {
         var titleEl = document.getElementById('overTitle');
         if (clearQTimer) { clearTimeout(clearQTimer); clearQTimer = null; }
@@ -2423,6 +2424,7 @@
         rankNode.dataset.rank=rankNode.textContent;
         var history=readHistory();
         history.unshift({date:new Date().toISOString(),mode:runChoice,score:score,time:elapsedMs,accuracy:accuracy,combo:maxCombo,clear:cleared});
+        var flags=readAchievements();flags.win=flags.win||cleared;flags.master=flags.master||(cleared&&accuracy>=.95);flags.combo=flags.combo||maxCombo>=50;try{localStorage.setItem('pariigemu.achievements.v1',JSON.stringify(flags));}catch(e){}
         history=history.slice(0,50);
         try{localStorage.setItem('pariigemu.history.v1',JSON.stringify(history));}catch(e){}
         var graph=document.getElementById('resultGraph');graph.replaceChildren();
@@ -3765,7 +3767,7 @@
       }
 
       function doParry() {
-        if (MODE !== 'playing') return;
+        if (MODE !== 'playing' || introReadUntil) return;
         audio();
         if (seqActive()) {
           // during a sequence every press is recorded: the single-
@@ -3797,7 +3799,7 @@
         pressFx(btnParry);
       }
       function doDodge() {
-        if (MODE !== 'playing') return;
+        if (MODE !== 'playing' || introReadUntil) return;
         audio();
         if (seqActive()) {
           dodgeUntil = gNow + 380;
@@ -4852,7 +4854,7 @@
       }
 
       function drawEnemy(t) {
-        if(MODE==='over' && runCleared && gNow-overAt>900) return;
+        if(MODE==='over' && runCleared) return;
         var staggered = gNow < enemyStaggerUntil;
         var hitFlash = gNow < enemyHitFlashUntil;
         var striking = gNow < enemyStrikeAnimUntil;
@@ -5644,7 +5646,7 @@
               if(remain<=60000 && finaleNotice===0){finaleNotice=1;finaleBanner('最終局面');}
               if(remain<=10000 && finaleNotice<2){finaleNotice=2;finaleBanner('決着まであとわずか');}
               if(finaleNotice===1 && remain<57000 || finaleNotice===2 && remain<7000) finaleBanner('');
-              if(remain<=0 && !atk && !cue && !forceChainNext && !forceDarkNext && seqRemaining()<=0){elapsedMs=clearMs();gameClear();render(dt);return;}
+              if(remain<=0 && finalSpecial && !atk && !cue && !forceChainNext && !forceDarkNext && seqRemaining()<=0){elapsedMs=clearMs();gameClear();render(dt);return;}
             }
             beatPhase += gdt / bgmBeatMs(); // idle motion rides the same beat grid as the BGM
             updateBGM();
@@ -5876,7 +5878,7 @@
                 // by the OUTCOME, not the clock — a miss serves the
                 // same attack again (see finalizeIntro)
                 if (gNow >= introNextAt && gNow >= nextAttackAt) launchIntroStep();
-              } else if (elapsedMs < clearMs() && gNow >= nextAttackAt && (forceChainNext || gNow > enemyStaggerUntil - 200) && (forceChainNext || !(restUntilPhase > 0 && !seqPattern))) {
+              } else if ((!finalSpecial || elapsedMs < clearMs()) && gNow >= nextAttackAt && (forceChainNext || gNow > enemyStaggerUntil - 200) && (forceChainNext || !(restUntilPhase > 0 && !seqPattern))) {
                 // a chain continuation is EXEMPT from the stagger
                 // gate: its strike is fixed on the chain grid and
                 // its only cue (the po-po-po triple) starts on the
@@ -5897,8 +5899,8 @@
                 // two-beat grid. Ordinary attacks still wait out
                 // the rest bar (a sequence in progress is never
                 // cut either — see the branch above).
-                if(!finalSpecial && !darkPhase && clearMs()-elapsedMs<=10000){finalSpecial=true;introKind='chain';finaleBanner('最終必殺・魔王の連撃');}
-                scheduleWindup();
+                if(!finalSpecial && clearMs()-elapsedMs<=10000){finalSpecial=true;darkPhase=null;blackoutUntil=0;introKind='chain';finaleBanner('最終必殺・魔王の連撃');} else if(finalSpecial){ /* no new attacks after the final chain */ }
+                if(!finalSpecial || introKind==='chain') scheduleWindup();
               }
             }
             if ((tick.frame = (tick.frame || 0) + 1) % 6 === 0) updateHUD();
