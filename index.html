@@ -1693,9 +1693,9 @@
       var floaters = [];
       var gaugeHealUntil = 0;       // confidence gauge heal glow, until this clock time
       var overAt = 0;
-      var finaleNotice=0, finaleTimer=null;
+      var finaleNotice=0, finaleTimer=null, finaleResultTimer=null;
       function finaleBanner(msg){var e=document.getElementById('finaleBanner');e.textContent=msg;e.hidden=!msg;}
-      function resetFinale(){clearTimeout(finaleTimer);finaleTimer=null;finaleNotice=0;finaleBanner('');}
+      function resetFinale(){clearTimeout(finaleTimer);clearTimeout(finaleResultTimer);finaleTimer=null;finaleResultTimer=null;finaleNotice=0;finaleBanner('');}
       // blackout light transitions (visual only): flicker timestamps
       // and whether the torches are currently lit
       var prevBlackout = false, flickInAt = -99999, flickOutAt = -99999, torchLit = true;
@@ -2370,7 +2370,13 @@
         }
         document.getElementById('overSub').textContent = cleared ? (runChoice === 'hard' ? '15:00到達 — 15分間生き残った！' : '10:00到達 — 10分間生き残った！') : '';
         document.getElementById('resMode').textContent = runChoice === 'hard' ? 'ハード' : runChoice === 'tutorial' ? 'ノーマル（チュートリアル）' : 'ノーマル';
-        document.getElementById('finalScore').textContent = score.toLocaleString();
+        var scoreNode=document.getElementById('finalScore'), targetScore=score;
+        scoreNode.textContent=targetScore.toLocaleString();
+        if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+          var started=null, resultToken=overAt;
+          function countScore(ts){if(MODE!=='over'||overAt!==resultToken)return;if(panelOver.hidden){requestAnimationFrame(countScore);return;}if(started===null)started=ts;var p=Math.min(1,(ts-started)/850);scoreNode.textContent=Math.round(targetScore*(1-Math.pow(1-p,3))).toLocaleString();if(p<1)requestAnimationFrame(countScore);}
+          requestAnimationFrame(countScore);
+        }
         document.getElementById('resParry').textContent = parryCount;
         document.getElementById('resPerfect').textContent = perfectCount;
         document.getElementById('resGreat').textContent = greatCount;
@@ -2411,9 +2417,8 @@
         runCleared = true;
         MODE = 'over';
         overAt = gNow;
-        bgmStop();
-        // the run ends on the spot: any attack or cue still in
-        // flight is discarded, never resolved after the clear
+        if(bgmBus && actx){var tail=bgmBus;bgmBus=null;try{var at=actx.currentTime;tail.gain.cancelScheduledValues(at);tail.gain.setValueAtTime(tail.gain.value,at);tail.gain.linearRampToValueAtTime(0,at+0.45);setTimeout(function(){try{tail.disconnect();}catch(e){}},550);}catch(e){try{tail.disconnect();}catch(e){}}}
+        // All active attacks have resolved before entering victory.
         atk = null; cue = null;
         seqPattern = null; seqIndex = 0; seqStrikes = null; seqView = null;
         pressQueue = []; seqAssign = []; seqResolvedCount = 0;
@@ -2422,7 +2427,7 @@
         finaleBanner('魔王の猛攻を退けた！');
         doFlash('#ffe6a1');
         finaleTimer=setTimeout(function(){if(MODE==='over'&&runCleared){sfx('clear');finaleBanner('VICTORY');}},750);
-        setTimeout(function(){if(MODE==='over'&&runCleared){finaleBanner('');fillResults(true);panelOver.hidden=false;}},2800);
+        finaleResultTimer=setTimeout(function(){if(MODE==='over'&&runCleared){finaleBanner('');fillResults(true);panelOver.hidden=false;}},2800);
       }
 
       /* ================= HUD / feedback ================= */
@@ -4815,6 +4820,7 @@
       }
 
       function drawEnemy(t) {
+        if(MODE==='over' && runCleared && gNow-overAt>900) return;
         var staggered = gNow < enemyStaggerUntil;
         var hitFlash = gNow < enemyHitFlashUntil;
         var striking = gNow < enemyStrikeAnimUntil;
